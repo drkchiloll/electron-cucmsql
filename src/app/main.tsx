@@ -21,7 +21,7 @@ const lightMuiTheme = getMuiTheme({
   tabs: {
     selectedTextColor: darkBlack,
     textColor: darkBlack,
-    backgroundColor: fullWhite
+    backgroundColor: 'rgb(234,237,237)'
   }
 });
 
