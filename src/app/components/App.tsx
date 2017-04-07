@@ -22,7 +22,7 @@ export class App extends React.Component<any, any> {
 					}
 						label='Accounts'
 						value='profs'>
-						<Accounts />
+						<StateLess />
 					</Tab>
 					<Tab label='Component'
 						value='comp'>
