@@ -13,47 +13,43 @@ import {
 export class App extends React.Component<any, any> {
 	constructor() {
 		super();
-		this.state = { open: false };
+		this.state = {
+			openAcct: false,
+			tabIndx: 1
+		};
 		this.handleClose = this.handleClose.bind(this);
+		this._tabSelect = this._tabSelect.bind(this);
 	}
 	handleClose() {
-		this.setState({ open: false });
+		this.setState({
+			openAcct: false,
+			tabIdx: 1,
+			tabValue: 'comp'
+		});
+	}
+	_tabSelect(e:any) {
+		this.setState({
+			openAcct: true,
+			tabValue: 'profs'
+		});
 	}
 	render() {
-    const actions = [
-      <FlatButton
-        label="Cancel"
-        primary={true}
-        onTouchTap={this.handleClose}
-      />,
-      <FlatButton
-        label="Submit"
-        primary={true}
-        keyboardFocused={true}
-        onTouchTap={this.handleClose}
-      />,
-    ];
 		return (
 			<div>
 				<Tabs className='tabs-container'
 					inkBarStyle={{background:'blue'}}
-					tabItemContainerStyle={{width:'400px'}}>
+					tabItemContainerStyle={{width:'400px'}}
+					initialSelectedIndex={this.state.tabIndx}
+					value={this.state.tabValue}>
 					<Tab icon={
 						<FontIcon className='fa fa-database'/>
 					}
 						label='Accounts'
 						value='profs'
-						onActive={() => {
-							this.setState({ open: true });
-						}}>
-						<Dialog
-							title="Dialog With Actions"
-							actions={actions}
-							modal={false}
-							open={this.state.open}
-							onRequestClose={this.handleClose}>
-							The actions in this window were passed in as an array of React objects.
-						</Dialog>
+						onActive={this._tabSelect}>
+						<Accounts
+							openDia={this.state.openAcct}
+							acctClose={this.handleClose} />
 					</Tab>
 					<Tab label='Component'
 						value='comp'>
