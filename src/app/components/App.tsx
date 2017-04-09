@@ -41,9 +41,8 @@ export class App extends React.Component<any, any> {
 					tabItemContainerStyle={{width:'400px'}}
 					initialSelectedIndex={this.state.tabIndx}
 					value={this.state.tabValue}>
-					<Tab icon={
-						<FontIcon className='fa fa-database'/>
-					}
+					<Tab
+						icon={<FontIcon className='fa fa-users'/>}
 						label='Accounts'
 						value='profs'
 						onActive={this._tabSelect}>
@@ -51,7 +50,9 @@ export class App extends React.Component<any, any> {
 							openDia={this.state.openAcct}
 							acctClose={this.handleClose} />
 					</Tab>
-					<Tab label='Component'
+					<Tab
+						icon={<FontIcon className='fa fa-database fa-2x' />}
+						label='SQL'
 						value='comp'>
 					</Tab>
 				</Tabs>
