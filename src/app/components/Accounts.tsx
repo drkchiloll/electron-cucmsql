@@ -1,4 +1,5 @@
 import * as React from 'react';
+import * as $ from 'jquery';
 import { Component, PropTypes } from 'react';
 import {
   Drawer, MenuItem, Dialog, FlatButton,
@@ -80,11 +81,15 @@ export class Accounts extends React.Component<any,any> {
           <Drawer open={true} width={225}>
             <SelectableList value={this.state.selectedAcct}
               onChange={(e:any) => {
+                console.log($(e.target).text());
                 let accounts = this.state.accounts,
                     acctName = $(e.target).text();
-                this.setState({
-                  selectedAcct: accounts.findIndex(acct=> acct.name===acctName)
-                });
+                let selectedAcct = accounts.findIndex(acct=>acct.name===acctName);
+                console.log(selectedAcct);
+                if(selectedAcct === -1) return;
+                else {
+                  this.setState({ selectedAcct });
+                }
               }} >
               <Subheader>Account List</Subheader>
               {
