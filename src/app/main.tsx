@@ -28,6 +28,9 @@ const lightMuiTheme = getMuiTheme({
   },
   flatButton: {
     primaryTextColor: darkBlack
+  },
+  snackbar: {
+    textColor: fullWhite
   }
 });
 
