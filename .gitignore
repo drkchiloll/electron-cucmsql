@@ -4,3 +4,4 @@ dist/*.js
 *.js.map
 .DS_Store
 *.db
+.data
