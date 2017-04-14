@@ -1,6 +1,5 @@
 import * as React from 'react';
 import * as $ from 'jquery';
-import { Component, PropTypes } from 'react';
 import {
   Drawer, MenuItem, Dialog, FlatButton,
   BottomNavigation, BottomNavigationItem,
