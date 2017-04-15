@@ -28,7 +28,7 @@ export class Accounts extends React.Component<any,any> {
   componentWillMount() {
     let api = new Api('accounts');
     api.get().then((records:any) => {
-      console.log(records);
+      // console.log(records);
       let accounts;
       if(records.length === 0) {
         accounts = [{
@@ -213,7 +213,7 @@ export class Accounts extends React.Component<any,any> {
                 hintText="Hostname/IP Address"
                 style={style}
                 name='host'
-                underlineShow={false}
+                underlineShow={true}
                 floatingLabelFixed={true}
                 floatingLabelText='CUCM Server'
                 value={this.state.accounts[this.state.selectedAcct].host}
@@ -236,7 +236,7 @@ export class Accounts extends React.Component<any,any> {
                 hintText="user_name"
                 style={style}
                 name='username'
-                underlineShow={false}
+                underlineShow={true}
                 floatingLabelFixed={true}
                 floatingLabelText='UserName'
                 value={this.state.accounts[this.state.selectedAcct].username}
@@ -246,7 +246,7 @@ export class Accounts extends React.Component<any,any> {
                 hintText="password"
                 name='password'
                 style={style}
-                underlineShow={false}
+                underlineShow={true}
                 floatingLabelFixed={true}
                 floatingLabelText='Password'
                 value={this.state.accounts[this.state.selectedAcct].password}
