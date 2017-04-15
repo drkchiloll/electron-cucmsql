@@ -24,7 +24,8 @@ const lightMuiTheme = getMuiTheme({
     backgroundColor: 'rgb(234,237,237)'
   },
   textField: {
-    floatingLabelColor: darkBlack
+    floatingLabelColor: darkBlack,
+    focusColor: 'rgb(120,20,17)'
   },
   flatButton: {
     primaryTextColor: darkBlack
