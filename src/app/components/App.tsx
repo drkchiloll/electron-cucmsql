@@ -7,13 +7,14 @@ import {
 
 // Import Components
 import {
-	Accounts, StateLess
+	Accounts, QueryWindow
 } from './index';
 
 export class App extends React.Component<any, any> {
 	constructor() {
 		super();
 		this.state = {
+			tabValue: 'mainView',
 			openAcct: false,
 			tabIndx: 1
 		};
@@ -24,28 +25,28 @@ export class App extends React.Component<any, any> {
 		this.setState({
 			openAcct: false,
 			tabIdx: 1,
-			tabValue: 'comp'
+			tabValue: 'mainView'
 		});
 	}
-	_tabSelect(e:any) {
+	_tabSelect(tabValue:string) {
 		this.setState({
-			openAcct: true,
-			tabValue: 'profs'
+			openAcct: tabValue==='accts' ? true : false,
+			tabValue
 		});
 	}
 	render() {
 		return (
 			<div>
 				<Tabs className='tabs-container'
-					inkBarStyle={{background:'blue'}}
+					inkBarStyle={{background:'rgb(140,20,17)'}}
 					tabItemContainerStyle={{width:'400px'}}
 					initialSelectedIndex={this.state.tabIndx}
-					value={this.state.tabValue}>
+					value={this.state.tabValue}
+					onChange={this._tabSelect}>
 					<Tab
 						icon={<FontIcon className='fa fa-users'/>}
 						label='Accounts'
-						value='profs'
-						onActive={this._tabSelect}>
+						value='accts'>
 						<Accounts
 							openDia={this.state.openAcct}
 							acctClose={this.handleClose} />
@@ -53,10 +54,10 @@ export class App extends React.Component<any, any> {
 					<Tab
 						icon={<FontIcon className='fa fa-database fa-2x' />}
 						label='SQL'
-						value='comp'>
+						value='mainView'>
 					</Tab>
 				</Tabs>
-				<StateLess />
+				<QueryWindow view={this.state.tabValue} />
 			</div>
 		);
 	}
