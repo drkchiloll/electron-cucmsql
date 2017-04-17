@@ -21,7 +21,7 @@ const lightMuiTheme = getMuiTheme({
   tabs: {
     selectedTextColor: darkBlack,
     textColor: darkBlack,
-    backgroundColor: 'rgb(234,237,237)'
+    backgroundColor: '#d7dddd',
   },
   textField: {
     floatingLabelColor: darkBlack,
