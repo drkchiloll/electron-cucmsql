@@ -1,7 +1,7 @@
 import * as Promise from 'bluebird';
 import * as path from 'path';
 import * as fs from 'fs';
-import * as Datastore from 'nedb';
+import * as Datastore from 'nedb-core';
 
 const appOut = path.resolve(__dirname, '../../'),
       appIn = path.resolve(__dirname, '../');
