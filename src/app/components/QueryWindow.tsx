@@ -83,7 +83,7 @@ export class QueryWindow extends React.Component<any,any> {
     selectedStatement = '';
     selectedQuery = queries.length + 1;
     this.setState({ selectedStatement, selectedQuery });
-    $(this.state.editor).focus();
+    this.state.editor.focus();
   }
   _execQuery() {
 
