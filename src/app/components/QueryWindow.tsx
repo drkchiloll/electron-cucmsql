@@ -12,7 +12,7 @@ import {
   Paper, TextField, Divider, Drawer,
   Subheader, List, ListItem, makeSelectable,
   BottomNavigation, BottomNavigationItem,
-  Toggle
+  Toggle, Dialog, FlatButton
 } from 'material-ui';
 
 let SelectableList = makeSelectable(List);
@@ -22,6 +22,7 @@ export class QueryWindow extends React.Component<any,any> {
     super();
     this.state = {
       aceFocus: false,
+      saveDialog: false,
       vimMode: false,
       editor: null,
       selectedStatement: null,
@@ -85,21 +86,24 @@ export class QueryWindow extends React.Component<any,any> {
     this.setState({ selectedStatement, selectedQuery });
     this.state.editor.focus();
   }
-  _execQuery() {
+  _execQuery() {}
 
-  }
-  focusEditor() {
-    return true;
-  }
   _saveQuery() {
     console.log('save');
     let { selectedStatement, selectedQuery, queries } = this.state,
         current = selectedStatement,
-        old = queries[selectedQuery].query;
+        old = queries[selectedQuery],
+        oldQuery;
+
     console.log(current);
     console.log(old);
-    if(current !== old) {
-      console.log('statement changed');
+    if(!old) {
+      return this.setState({ saveDialog: true });
+    } else {
+      oldQuery = old.query;
+      if(current !== oldQuery) {
+        console.log('statement changed');
+      }
     }
   }
   _setEditorMode(e, checked) {
@@ -152,6 +156,7 @@ export class QueryWindow extends React.Component<any,any> {
               label='Execute SQL'
               onTouchTap={this._execQuery}/>
             <BottomNavigationItem
+              className='new-query'
               icon={
                 <span className="fa-stack fa-lg">
                   <i className="fa fa-square fa-stack-2x"></i>
@@ -159,7 +164,7 @@ export class QueryWindow extends React.Component<any,any> {
                 </span>
               }
               label='New Query'
-              onTouchTap={this._newQuery}/>
+              onClick={this._newQuery}/>
             <BottomNavigationItem
               className='save-query'
               icon={
@@ -186,16 +191,21 @@ export class QueryWindow extends React.Component<any,any> {
             }}
             className='editor'
             focus={aceFocus}
-            commands={[
-              {
-                name:'save',
-                bindKey: {
-                  win: 'Ctrl-S', mac: 'Command-S'
-                },
-                exec: function() {
-                  $('.save-query').get(0).click();
-                }
+            commands={[{
+              name:'save',
+              bindKey: {
+                win: 'Ctrl-S', mac: 'Command-S'
+              },
+              exec: function() {
+                $('.save-query').get(0).click();
               }
+            }, {
+              name:'new-query',
+              bindKey: { win: 'Ctrl-N', mac: 'Command-N' },
+              exec: function() {
+                $('.new-query').get(0).click();
+              }
+            }
             ]}
             name='editor'
             height='200px'
@@ -205,7 +215,7 @@ export class QueryWindow extends React.Component<any,any> {
             value={this.state.selectedStatement}
             enableBasicAutocompletion={true}
             enableLiveAutocompletion={true}
-            editorProps={{$blockScrolling: 1}}/>
+            editorProps={{$blockScrolling: Infinity}}/>
           <div style={{float:'right'}}>
             <Toggle
               label='Enable VIM Mode'
@@ -217,6 +227,26 @@ export class QueryWindow extends React.Component<any,any> {
               onToggle={this._setEditorMode} />
           </div>
         </div>
+        <Dialog open={this.state.saveDialog}
+          title='Save Query'
+          modal={true}
+          style={{width:600, margin :'25px 0 0 25%', top: -250}}
+          actions={[
+            <FlatButton label='Cancel'
+              primary={true}
+              onTouchTap={()=> this.setState({ saveDialog: false })} />,
+            <FlatButton label='Save'
+              primary={true}
+              onTouchTap={()=>{}} />
+          ]} >
+          <TextField hintText='Unique Name for Query'
+            name='query-name'
+            underlineShow={true}
+            floatingLabelFixed={true}
+            value={this.state.queryName}
+            onChange={()=>{}}
+            errorText='' />
+        </Dialog>
       </div>
     );
   }
