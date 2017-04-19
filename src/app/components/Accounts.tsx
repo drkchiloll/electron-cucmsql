@@ -26,7 +26,10 @@ export class Accounts extends React.Component<any,any> {
     this.save = this.save.bind(this);
   }
   componentWillMount() {
-    let api = new Api('accounts');
+    let api = new Api({
+      db: 'acctDb',
+      dbName: 'accounts'
+    });
     api.get().then((records:any) => {
       // console.log(records);
       let accounts;

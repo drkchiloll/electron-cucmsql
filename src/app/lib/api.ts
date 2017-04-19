@@ -8,26 +8,29 @@ const appOut = path.resolve(__dirname, '../../'),
 
 export class Api {
   acctDb: Datastore;
+  queryDb: Datastore;
+  dbInstance:string;
 
-  constructor(dbName:string) {
+  constructor({db, dbName}) {
     let filename: string;
     if(fs.existsSync(`${appOut}/.data`)) {
       filename = `${appOut}/.data/.${dbName}`;
     } else {
       filename = `${appIn}/.data/.${dbName}`;
     }
-    this.acctDb = new Datastore({ filename, autoload: true });
+    this.dbInstance = db;
+    this[db] = new Datastore({ filename, autoload: true });
   }
 
   get() {
     return new Promise((resolve, reject) => {
-      this.acctDb.find({}, (err, docs) => resolve(docs));
+      this[this.dbInstance].find({}, (err, docs) => resolve(docs));
     });
   }
 
   add(record:any) {
     return new Promise((resolve, reject) => {
-      this.acctDb.insert(record, (err, doc) => {
+      this[this.dbInstance].insert(record, (err, doc) => {
         return resolve(doc);
       });
     });
@@ -38,7 +41,7 @@ export class Api {
     delete record._id;
 
     return new Promise((resolve, reject) => {
-      this.acctDb.update({ _id }, record, { upsert: true },
+      this[this.dbInstance].update({ _id }, record, { upsert: true },
         (err:any, num:number) => {
           return resolve(num);
         });
@@ -47,9 +50,22 @@ export class Api {
 
   remove(_id:string) {
     return new Promise((resolve, reject) => {
-      this.acctDb.remove({ _id }, {}, (err, num) => {
+      this[this.dbInstance].remove({ _id }, {}, (err, num) => {
         return resolve(num);
       });
     });
   }
+}
+
+export interface IAccount {
+  name:string;
+  host:string;
+  version:string;
+  username:string;
+  password:string;
+}
+
+export interface IQuery {
+  name:string;
+  query:string;
 }
