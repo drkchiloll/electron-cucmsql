@@ -1,5 +1,6 @@
 import * as React from 'react';
 import * as $ from 'jquery';
+
 import {
   Drawer, MenuItem, Dialog, FlatButton,
   BottomNavigation, BottomNavigationItem,
@@ -31,17 +32,18 @@ export class Accounts extends React.Component<any,any> {
       dbName: 'accounts'
     });
     api.get().then((records:any) => {
-      // console.log(records);
+      console.log(records);
       let accounts;
       if(records.length === 0) {
         accounts = [{
-          name:'New', host:'',version:'8.5',
-          username:'',password:''
+          name:'New Account', host:'',version:'8.5',
+          username:'',password:'',selected: true
         }];
       } else {
         accounts = records;
       }
-      this.setState({ api, accounts });
+      let selectedAcct = accounts.findIndex(acct=> acct.selected);
+      this.setState({ api, accounts, selectedAcct });
     });
   }
   handleAccountsToggle() {
@@ -98,18 +100,6 @@ export class Accounts extends React.Component<any,any> {
         icon={<FontIcon color='red' className='fa fa-window-close-o'/>}
         primary={true}
         onTouchTap={() => {
-          let accounts = this.state.accounts;
-          console.log(this.state.selectedAcct);
-          if(accounts.length===1 && (!accounts[this.state.selectedAcct]._id ||
-              accounts[this.state.selectedAcct]._id)) {
-            return this.props.acctClose();
-          }
-          if(!accounts[this.state.selectedAcct]._id) {
-            accounts.splice(this.state.selectedAcct, 1);
-          }
-          this.setState({
-            accounts, selectedAcct: this.state.selectedAcct - 1
-          })
           this.props.acctClose();
         }}
       />
@@ -130,12 +120,22 @@ export class Accounts extends React.Component<any,any> {
               <SelectableList value={this.state.selectedAcct}
                 onChange={(e:any) => {
                   let accounts = this.state.accounts,
+                      prevSelected =
+                        JSON.parse(JSON.stringify(this.state.selectedAcct)),
                       acctName = $(e.target).text();
                   let selectedAcct = accounts.findIndex(acct=>acct.name===acctName);
-                  if(selectedAcct === -1) return;
-                  else {
+                  if(selectedAcct === -1) selectedAcct = 0;
+                  let account = accounts[selectedAcct],
+                      prevAcct = accounts[prevSelected];
+                  account.selected = true;
+                  prevAcct.selected = false;
+                  this.setState({ selectedAcct });
+                  let { api } = this.state;
+                  Promise.all([
+                    api.update(account), api.update(prevAcct)
+                  ]).then(() => {
                     this.setState({ selectedAcct });
-                  }
+                  })
                 }} >
                 <Subheader>Account List</Subheader>
                 {
