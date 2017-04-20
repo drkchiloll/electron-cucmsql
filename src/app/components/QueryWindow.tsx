@@ -5,8 +5,7 @@ import AceEditor from 'react-ace';
 import { Api } from '../lib/api';
 import { CucmSql } from '../lib/cucm-sql';
 
-// import * as $ from 'jquery'
-let $ = window['$'];
+import * as $ from 'jquery'
  
 import 'brace/mode/mysql';
 import 'brace/theme/monokai';
