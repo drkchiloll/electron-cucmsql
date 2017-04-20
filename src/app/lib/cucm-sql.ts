@@ -7,6 +7,7 @@ export class CucmSql {
   readonly doc = template;
   profile:ICucmSql;
   constructor(params:ICucmSql) {
+    console.log(params);
     this.profile = params;
   }
 
@@ -28,10 +29,59 @@ export class CucmSql {
     });
   }
 
+  gridify(data:any) {
+    let keys = Object.keys(data[0]);
+    return Promise.all([
+      keys.map(value => ({ value })),
+      data.reduce((a,obj,i) => {
+        a.push(keys.map(value => ({value: obj[value]})));
+        return a;
+      },[])
+    ]).then(results => {
+      results[1].unshift(results[0]);
+      return results[1];
+    })
+  }
+
+  columnize(data:any) {
+    let keys = Object.keys(data[0]);
+    return Promise.map(keys, (key) => ({
+      key, name: key, editable: true, resizeable: true
+    }))
+  }
+
+  rowify(data:any) {
+    let keys = Object.keys(data[0]);
+    return Promise.reduce(data, (a, o, i) => {
+      return Promise.reduce(keys, (ob, key, i) => {
+        if(i===0) {
+          ob['id'] = o[key];
+          ob[key] = o[key];
+        }
+        else ob[key] = o[key];
+        return ob;
+      },{}).then((object) => {
+        a.push(object);
+        return a;
+      });
+    }, []);
+  }
+
   query(statement:string) {
     return this._req(this._options(
       this.setDoc({action:'Query', statement})
-    )).then(this.parseResp);
+    )).then((data:string) => 
+      this.parseResp(data)
+    ).then((moreData) => {
+      return Promise.all([
+        this.columnize(moreData), this.rowify(moreData)
+      ]);
+    }).then(results => {
+      return {
+        columns: results[0],
+        rows: results[1]
+      };
+    });
   }
 
   update(statement:string) {}
@@ -45,7 +95,7 @@ export class CucmSql {
       },
       strictSSL: false,
       method: 'POST',
-      auth: {user: this.profile.user, pass: this.profile.pass},
+      auth: {user: this.profile.username, pass: this.profile.password},
       body
     };
   }
@@ -61,8 +111,8 @@ export class CucmSql {
 }
 
 export interface ICucmSql {
-  user:string;
-  pass:string;
+  username:string;
+  password:string;
   host:string;
   version:string;
 }
