@@ -9,6 +9,7 @@ const appOut = path.resolve(__dirname, '../../'),
 export class Api {
   acctDb: Datastore;
   queryDb: Datastore;
+  editorDb: Datastore;
   dbInstance:string;
 
   constructor({db, dbName}) {
@@ -22,9 +23,10 @@ export class Api {
     this[db] = new Datastore({ filename, autoload: true });
   }
 
-  get() {
+  get(query={}) {
     return new Promise((resolve, reject) => {
-      this[this.dbInstance].find({}, (err, docs) => resolve(docs));
+      this[this.dbInstance].find(query, (err, docs) =>
+        resolve(docs));
     });
   }
 
@@ -41,7 +43,7 @@ export class Api {
     delete record._id;
 
     return new Promise((resolve, reject) => {
-      this[this.dbInstance].update({ _id }, record, { upsert: true },
+      this[this.dbInstance].update({ _id }, record, { upsert: false },
         (err:any, num:number) => {
           return resolve(num);
         });
@@ -55,6 +57,13 @@ export class Api {
       });
     });
   }
+
+  defaultQuery() {
+    return [{
+      name: 'Show Description from Device',
+      query: `SELECT description from device\nwhere device='SEP00112233445566'`
+    }];
+  }
 }
 
 export interface IAccount {
@@ -63,9 +72,15 @@ export interface IAccount {
   version:string;
   username:string;
   password:string;
+  selected:boolean;
 }
 
 export interface IQuery {
   name:string;
   query:string;
+}
+
+export interface IEditorSettings {
+  vimMode:boolean;
+  fontSize:number;
 }
