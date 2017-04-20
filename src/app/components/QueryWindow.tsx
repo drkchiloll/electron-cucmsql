@@ -1,8 +1,12 @@
 import * as React from 'react';
 import * as brace from 'brace';
+import * as Promise from 'bluebird';
 import AceEditor from 'react-ace';
+import { Api } from '../lib/api';
+import { CucmSql } from '../lib/cucm-sql';
 
-import * as $ from 'jquery'
+// import * as $ from 'jquery'
+let $ = window['$'];
  
 import 'brace/mode/mysql';
 import 'brace/theme/monokai';
@@ -25,17 +29,16 @@ export class QueryWindow extends React.Component<any,any> {
       saveDialog: false,
       vimMode: false,
       editor: null,
-      selectedStatement: null,
+      selectedStatement: '',
+      queryName: '',
       drawerWidth: 310,
       editorWidth: 700,
       selectedQuery: 0,
-      queries: [{
-        name: 'q1',
-        query: 'select description from device\nwhere device like "SEP%"'
-      }, {
-        name: 'q2',
-        query: 'select dnorpattern from numplan\nwhere dnorpattern="1001"'
-      }]
+      queryApi: null,
+      editorSettingsApi: null,
+      queries: [],
+      queryResults: [],
+      openTable: false
     };
     this._queryChange = this._queryChange.bind(this);
     this._newQuery = this._newQuery.bind(this);
@@ -44,10 +47,22 @@ export class QueryWindow extends React.Component<any,any> {
     this._setEditorMode = this._setEditorMode.bind(this);
   }
   componentWillMount() {
-    if(this.props.view==='mainView') this.setState({ aceFocus: true });
-    let { selectedQuery, selectedStatement, queries } = this.state;
-    if(!selectedStatement) selectedStatement = queries[selectedQuery].query;
-    this.setState({ selectedStatement });
+    let queryApi = new Api({ db: 'queryDb', dbName: 'cucm-query' }),
+        editorSettingsApi = new Api({ db: 'editorDb', dbName: 'editor-config' }),
+        selectedQuery = this.state.selectedQuery,
+        selectedStatement, aceFocus;
+    Promise.all([
+      queryApi.get(), editorSettingsApi.get()
+    ]).then((results:any) => {
+      let queries, editorSettings;
+      if(results[0].length===0) queries = queryApi.defaultQuery();
+      else queries = results[0];
+      if(!selectedStatement) selectedStatement = queries[selectedQuery].query;
+      if(this.props.view==='mainView') aceFocus = true;
+      else aceFocus = false;
+      this.setState({ aceFocus, queries, selectedStatement, queryApi, editorSettingsApi });
+      this._setEditorLine(this.state.editor);
+    });
   }
   componentDidMount() {
     window.onresize = () => {
@@ -60,19 +75,21 @@ export class QueryWindow extends React.Component<any,any> {
     let aceFocus = nextProps.view==='mainView' ? true: false;
     this.setState({ aceFocus });
   }
+  _setEditorLine(editor) {
+    setTimeout(() => {
+      let row = editor.session.getLength() - 1,
+          column = editor.session.getLine(row).length;
+      editor.focus();
+      editor.gotoLine(row + 1, column);
+    },0);
+  }
   _queryChange(e, value) {
     let selectedStatement = this.state.queries[value].query;
     this.setState({
       selectedQuery: value,
       selectedStatement
     });
-    setTimeout(() => {
-      let editor = this.state.editor,
-          row = editor.session.getLength() - 1,
-          column = editor.session.getLine(row).length;
-      editor.focus();
-      editor.gotoLine(row + 1, column);
-    },0);
+    this._setEditorLine(this.state.editor);
   }
   _newQuery() {
     let { selectedStatement, selectedQuery, queries } = this.state,
@@ -86,17 +103,24 @@ export class QueryWindow extends React.Component<any,any> {
     this.setState({ selectedStatement, selectedQuery });
     this.state.editor.focus();
   }
-  _execQuery() {}
-
+  _execQuery() {
+    let dbApi = new Api({ db: 'acctDb', dbName: 'accounts' });
+    dbApi.get({ selected: true}).then((record) => {
+      let account = record[0];
+      delete account._id;
+      delete account.name;
+      delete account.selected;
+      let cucmHandler = new CucmSql(account);
+      cucmHandler.query(this.state.selectedStatement).then((resp) => {
+        this.setState({ queryResults: resp, openTable: true });
+      });
+    });
+  }
   _saveQuery() {
-    console.log('save');
     let { selectedStatement, selectedQuery, queries } = this.state,
         current = selectedStatement,
         old = queries[selectedQuery],
         oldQuery;
-
-    console.log(current);
-    console.log(old);
     if(!old) {
       return this.setState({ saveDialog: true });
     } else {
@@ -205,8 +229,7 @@ export class QueryWindow extends React.Component<any,any> {
               exec: function() {
                 $('.new-query').get(0).click();
               }
-            }
-            ]}
+            }]}
             name='editor'
             height='200px'
             width={`${this.state.editorWidth}px`}
@@ -237,14 +260,24 @@ export class QueryWindow extends React.Component<any,any> {
               onTouchTap={()=> this.setState({ saveDialog: false })} />,
             <FlatButton label='Save'
               primary={true}
-              onTouchTap={()=>{}} />
+              onTouchTap={()=>{
+                let { queries, queryApi, selectedStatement, queryName } = this.state;
+                let record = {
+                  name: queryName,
+                  query: selectedStatement
+                }
+                queryApi.add(record).then((doc) => {
+                  queries.push(doc);
+                  this.setState({ queries, saveDialog: false });
+                });
+              }} />
           ]} >
           <TextField hintText='Unique Name for Query'
             name='query-name'
             underlineShow={true}
             floatingLabelFixed={true}
             value={this.state.queryName}
-            onChange={()=>{}}
+            onChange={(e, value)=> this.setState({ queryName: value })}
             errorText='' />
         </Dialog>
       </div>
