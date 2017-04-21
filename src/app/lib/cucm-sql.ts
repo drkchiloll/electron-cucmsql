@@ -46,7 +46,7 @@ export class CucmSql {
   columnize(data:any) {
     let keys = Object.keys(data[0]);
     return Promise.map(keys, (key) => ({
-      key, name: key, editable: true, resizeable: true
+      key, name: key, editable: true, resizable: true
     }))
   }
 

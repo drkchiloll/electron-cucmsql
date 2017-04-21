@@ -4,8 +4,9 @@ import * as Promise from 'bluebird';
 import AceEditor from 'react-ace';
 import { Api } from '../lib/api';
 import { CucmSql } from '../lib/cucm-sql';
-
+import * as ReactDataGrid from 'react-data-grid';
 import * as $ from 'jquery'
+import update from 'react-addons-update';
  
 import 'brace/mode/mysql';
 import 'brace/theme/monokai';
@@ -31,19 +32,22 @@ export class QueryWindow extends React.Component<any,any> {
       selectedStatement: '',
       queryName: '',
       drawerWidth: 310,
-      editorWidth: 700,
+      editorWidth: window.innerWidth - 310,
       selectedQuery: 0,
       queryApi: null,
       editorSettingsApi: null,
       queries: [],
       queryResults: [],
-      openTable: false
+      openTable: false,
+      columns: [],
+      rows: []
     };
     this._queryChange = this._queryChange.bind(this);
     this._newQuery = this._newQuery.bind(this);
     this._execQuery = this._execQuery.bind(this);
     this._saveQuery = this._saveQuery.bind(this);
     this._setEditorMode = this._setEditorMode.bind(this);
+    this._getRow = this._getRow.bind(this);
   }
   componentWillMount() {
     let queryApi = new Api({ db: 'queryDb', dbName: 'cucm-query' }),
@@ -69,6 +73,9 @@ export class QueryWindow extends React.Component<any,any> {
           editorWidth = innerWidth - this.state.drawerWidth;
       this.setState({ editorWidth });
     };
+  }
+  _getWidth() {
+
   }
   componentWillReceiveProps(nextProps) {
     let aceFocus = nextProps.view==='mainView' ? true: false;
@@ -111,9 +118,14 @@ export class QueryWindow extends React.Component<any,any> {
       delete account.selected;
       let cucmHandler = new CucmSql(account);
       cucmHandler.query(this.state.selectedStatement).then((resp) => {
-        this.setState({ queryResults: resp, openTable: true });
+        this.setState({
+          openTable: true, columns: resp.columns, rows: resp.rows
+        });
       });
     });
+  }
+  _getRow(i) {
+    return this.state.rows[i];
   }
   _saveQuery() {
     let { selectedStatement, selectedQuery, queries } = this.state,
@@ -238,15 +250,36 @@ export class QueryWindow extends React.Component<any,any> {
             enableBasicAutocompletion={true}
             enableLiveAutocompletion={true}
             editorProps={{$blockScrolling: Infinity}}/>
-          <div style={{float:'right'}}>
+          <div style={{textAlign:'right'}}>
             <Toggle
               label='Enable VIM Mode'
+              labelPosition='left'
               toggled={this.state.vimMode}
               trackStyle={{backgroundColor: 'red'}}
               thumbStyle={{backgroundColor:'#ffcccc'}}
               thumbSwitchedStyle={{backgroundColor: '#72d86e'}} //Thumb Checked/On
               trackSwitchedStyle={{backgroundColor: 'green'}} // Track Checked/On
               onToggle={this._setEditorMode} />
+          </div>
+        </div>
+        <div style={{
+          position: 'fixed', left: 310, top: 310, width: this.state.editorWidth,
+          backgroundColor: '#d7dddd'
+        }}>
+          <div style={{display:this.state.openTable ? 'block': 'none'}}>
+            <ReactDataGrid
+              enableCellSelect={true}
+              columns={this.state.columns}
+              rowGetter={this._getRow}
+              rowsCount={this.state.rows.length}
+              minHeight={500}
+              minWidth={this.state.editorWidth}
+              onGridRowsUpdated={({fromRow, toRow, updated}) => {
+                let rows = this.state.rows.slice();
+                let updatedKey = Object.keys(updated);
+                rows[toRow][updatedKey[0]] = updated[updatedKey[0]];
+                this.setState({ rows });
+              }}/>
           </div>
         </div>
         <Dialog open={this.state.saveDialog}
