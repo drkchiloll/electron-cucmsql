@@ -1,4 +1,5 @@
 import * as React from 'react';
+import * as ReactDOM from 'react-dom';
 import * as brace from 'brace';
 import * as Promise from 'bluebird';
 import AceEditor from 'react-ace';
@@ -11,6 +12,8 @@ import 'brace/mode/mysql';
 import 'brace/theme/monokai';
 import 'brace/keybinding/vim';
 
+import { Table, Column, Cell } from 'fixed-data-table-2';
+
 import {
   Paper, TextField, Divider, Drawer,
   Subheader, List, ListItem, makeSelectable,
@@ -21,8 +24,8 @@ import {
 let SelectableList = makeSelectable(List);
 
 export class QueryWindow extends React.Component<any,any> {
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
     this.state = {
       aceFocus: false,
       saveDialog: false,
@@ -31,19 +34,26 @@ export class QueryWindow extends React.Component<any,any> {
       selectedStatement: '',
       queryName: '',
       drawerWidth: 310,
-      editorWidth: 700,
+      editorWidth: window.innerWidth - 310,
       selectedQuery: 0,
       queryApi: null,
       editorSettingsApi: null,
       queries: [],
       queryResults: [],
-      openTable: false
+      openTable: false,
+      columns: [],
+      rows: [[';D)']],
+      columnWidths: {
+        first: 200, second: 200
+      }
     };
     this._queryChange = this._queryChange.bind(this);
     this._newQuery = this._newQuery.bind(this);
     this._execQuery = this._execQuery.bind(this);
     this._saveQuery = this._saveQuery.bind(this);
     this._setEditorMode = this._setEditorMode.bind(this);
+    this._update = this._update.bind(this);
+    this._rowDblClick = this._rowDblClick.bind(this);
   }
   componentWillMount() {
     let queryApi = new Api({ db: 'queryDb', dbName: 'cucm-query' }),
@@ -73,6 +83,9 @@ export class QueryWindow extends React.Component<any,any> {
   componentWillReceiveProps(nextProps) {
     let aceFocus = nextProps.view==='mainView' ? true: false;
     this.setState({ aceFocus });
+  }
+  _update(rows) {
+    this.setState({ rows });
   }
   _setEditorLine(editor) {
     setTimeout(() => {
@@ -111,7 +124,7 @@ export class QueryWindow extends React.Component<any,any> {
       delete account.selected;
       let cucmHandler = new CucmSql(account);
       cucmHandler.query(this.state.selectedStatement).then((resp) => {
-        this.setState({ queryResults: resp, openTable: true });
+        this.setState({ columns: resp.columns, rows: resp.rows });
       });
     });
   }
@@ -136,8 +149,17 @@ export class QueryWindow extends React.Component<any,any> {
     this.setState({ vimMode: checked });
     this.state.editor.focus();
   }
+  _rowDblClick(evt, rowIndex) {
+    let { id } = evt.target,
+        divId = $(`#${evt.target.id}`),
+        txtClass = $(`.${evt.target.id}`)[0];
+    $(divId).toggle();
+    $(txtClass).toggle()
+    setTimeout(() => $(`input[name="${id}"`).focus(), 0);
+  }
   render() {
-    let aceFocus = this.state.aceFocus;
+    let aceFocus = this.state.aceFocus,
+        datalist = [{first: 'Contents 1'}, {second: 'Contents 2'}];
     return (
       <div>
         <Drawer open={true} width={this.state.drawerWidth}
@@ -247,6 +269,60 @@ export class QueryWindow extends React.Component<any,any> {
               thumbSwitchedStyle={{backgroundColor: '#72d86e'}} //Thumb Checked/On
               trackSwitchedStyle={{backgroundColor: 'green'}} // Track Checked/On
               onToggle={this._setEditorMode} />
+          </div>
+          <div style={{ display: this.state.openTable ? 'block': 'none' }}>
+            <Table
+              rowsCount={this.state.rows[0].length}
+              rowHeight={50}
+              headerHeight={50}
+              width={this.state.editorWidth}
+              height={500}
+              onColumnResizeEndCallback={(newWidth, columnKey) => {
+                let columnWidths = this.state.columnWidths;
+                columnWidths[columnKey] = newWidth;
+                this.setState({ columnWidths });
+              }}
+              isColumnResizing={false}
+              onRowDoubleClick={this._rowDblClick} >
+              {
+                this.state.columns.map((col, i) => {
+                  return (
+                    <Column key={`${col}_${i}`} columnKey={col}
+                      header={col}
+                      cell={({ rowIndex, width, height }) =>{
+                        return (
+                          <Cell
+                            columnKey={col}
+                            height={height}
+                            width={width}
+                            rowIndex={rowIndex}>
+                            <div id={`col_${i}_row_${rowIndex}`}>
+                              {this.state.rows[i][rowIndex][col]}
+                            </div>
+                            <TextField
+                              name={`col_${i}_row_${rowIndex}`}
+                              style={{display:'none'}}
+                              value={this.state.rows[i][rowIndex][col]}
+                              underlineShow={false}
+                              className={`col_${i}_row_${rowIndex}`}
+                              onChange={(e, newValue) => {
+                                let rows = this.state.rows;
+                                rows[i][rowIndex][col] = newValue;
+                                this.setState({ rows });
+                              }}
+                              onBlur={() => {
+                                $(`.col_${i}_row_${rowIndex}`).toggle();
+                                $(`#col_${i}_row_${rowIndex}`).toggle();
+                              }} />
+                          </Cell>
+                        )
+                      }}
+                      isResizable={true}
+                      width={this.state.columnWidths.first} />
+                  );
+                })
+              }
+            </Table>
           </div>
         </div>
         <Dialog open={this.state.saveDialog}

@@ -32,7 +32,7 @@ export class Accounts extends React.Component<any,any> {
       dbName: 'accounts'
     });
     api.get().then((records:any) => {
-      console.log(records);
+      // console.log(records);
       let accounts;
       if(records.length === 0) {
         accounts = [{

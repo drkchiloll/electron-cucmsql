@@ -7,7 +7,6 @@ export class CucmSql {
   readonly doc = template;
   profile:ICucmSql;
   constructor(params:ICucmSql) {
-    console.log(params);
     this.profile = params;
   }
 
@@ -43,14 +42,18 @@ export class CucmSql {
     })
   }
 
-  columnize(data:any) {
+  dataGridColumnize(data:any) {
     let keys = Object.keys(data[0]);
     return Promise.map(keys, (key) => ({
       key, name: key, editable: true, resizeable: true
     }))
   }
 
-  rowify(data:any) {
+  fixDataGridColumnize(data:any) {
+    return Object.keys(data[0]);
+  }
+
+  dataGridRowify(data:any) {
     let keys = Object.keys(data[0]);
     return Promise.reduce(data, (a, o, i) => {
       return Promise.reduce(keys, (ob, key, i) => {
@@ -67,6 +70,20 @@ export class CucmSql {
     }, []);
   }
 
+  fixedDataRowify(data:any) {
+    let keys = Object.keys(data[0]);
+    return Promise.reduce(keys, (a, key) => {
+      return Promise.map(data, (obj) => {
+        let o = {};
+        o[key] = obj[key];
+        return o;
+      }).then((arrs) => {
+        a.push(arrs);
+        return a;
+      })
+    }, []);
+  }
+
   query(statement:string) {
     return this._req(this._options(
       this.setDoc({action:'Query', statement})
@@ -74,7 +91,7 @@ export class CucmSql {
       this.parseResp(data)
     ).then((moreData) => {
       return Promise.all([
-        this.columnize(moreData), this.rowify(moreData)
+        this.fixDataGridColumnize(moreData), this.fixedDataRowify(moreData)
       ]);
     }).then(results => {
       return {
