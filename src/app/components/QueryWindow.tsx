@@ -124,7 +124,7 @@ export class QueryWindow extends React.Component<any,any> {
       delete account.selected;
       let cucmHandler = new CucmSql(account);
       cucmHandler.query(this.state.selectedStatement).then((resp) => {
-        this.setState({ columns: resp.columns, rows: resp.rows });
+        this.setState({ columns: resp.columns, rows: resp.rows, openTable: true });
       });
     });
   }
