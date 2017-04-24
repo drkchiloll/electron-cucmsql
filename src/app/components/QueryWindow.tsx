@@ -37,15 +37,14 @@ export class QueryWindow extends React.Component<any,any> {
       editorWidth: window.innerWidth - 310,
       selectedQuery: 0,
       queryApi: null,
+      fontSize: 14,
       editorSettingsApi: null,
       queries: [],
       queryResults: [],
       openTable: false,
       columns: [],
       rows: [[';D)']],
-      columnWidths: {
-        first: 200, second: 200
-      }
+      columnWidths: null
     };
     this._queryChange = this._queryChange.bind(this);
     this._newQuery = this._newQuery.bind(this);
@@ -124,7 +123,12 @@ export class QueryWindow extends React.Component<any,any> {
       delete account.selected;
       let cucmHandler = new CucmSql(account);
       cucmHandler.query(this.state.selectedStatement).then((resp) => {
-        this.setState({ columns: resp.columns, rows: resp.rows, openTable: true });
+        let { columns, rows } = resp;
+        let columnWidths = columns.reduce((o, col) => {
+          o[col] = 200;
+          return o;
+        },{});
+        this.setState({ columns, rows, columnWidths, openTable: true });
       });
     });
   }
@@ -255,6 +259,7 @@ export class QueryWindow extends React.Component<any,any> {
             height='200px'
             width={`${this.state.editorWidth}px`}
             tabSize={2}
+            fontSize={this.state.fontSize}
             highlightActiveLine={false}
             value={this.state.selectedStatement}
             enableBasicAutocompletion={true}
@@ -289,6 +294,8 @@ export class QueryWindow extends React.Component<any,any> {
                   return (
                     <Column key={`${col}_${i}`} columnKey={col}
                       header={col}
+                      isResizable={true}
+                      width={this.state.columnWidths[col]}
                       cell={({ rowIndex, width, height }) =>{
                         return (
                           <Cell
@@ -316,9 +323,7 @@ export class QueryWindow extends React.Component<any,any> {
                               }} />
                           </Cell>
                         )
-                      }}
-                      isResizable={true}
-                      width={this.state.columnWidths.first} />
+                      }}/>
                   );
                 })
               }
