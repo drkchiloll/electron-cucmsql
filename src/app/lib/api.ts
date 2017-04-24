@@ -40,8 +40,6 @@ export class Api {
 
   update(record:any) {
     let _id = JSON.parse(JSON.stringify(record))._id;
-    delete record._id;
-
     return new Promise((resolve, reject) => {
       this[this.dbInstance].update({ _id }, record, { upsert: false },
         (err:any, num:number) => {
