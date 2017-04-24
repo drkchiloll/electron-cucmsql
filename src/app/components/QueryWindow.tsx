@@ -44,7 +44,9 @@ export class QueryWindow extends React.Component<any,any> {
       openTable: false,
       columns: [],
       rows: [[';D)']],
-      columnWidths: null
+      columnWidths: null,
+      hrTop: 275,
+      editorHeight: 200
     };
     this._queryChange = this._queryChange.bind(this);
     this._newQuery = this._newQuery.bind(this);
@@ -256,7 +258,7 @@ export class QueryWindow extends React.Component<any,any> {
               }
             }]}
             name='editor'
-            height='200px'
+            height={`${this.state.editorHeight}px`}
             width={`${this.state.editorWidth}px`}
             tabSize={2}
             fontSize={this.state.fontSize}
@@ -265,6 +267,17 @@ export class QueryWindow extends React.Component<any,any> {
             enableBasicAutocompletion={true}
             enableLiveAutocompletion={true}
             editorProps={{$blockScrolling: Infinity}}/>
+          <hr id='editorDivider'
+            style={{margin: 0, border: '2px solid #ffcccc'}}
+            draggable={true}
+            onMouseOver={() => $('#editorDivider').css('cursor','row-resize')}
+            onMouseOut={()=>$('#editorDivider').css('cursor','row-resize')}
+            onDragEnd={(e) => {
+              if(e.pageY == 0) return;
+              let editorHeight = 200 + e.pageY - 285 + 1;
+              this.setState({ editorHeight });
+              $('#editorDivider').css('cursor','pointer');
+            }} />
           <div style={{float:'right'}}>
             <Toggle
               label='Enable VIM Mode'
