@@ -120,6 +120,7 @@ export class CucmSql {
   private _req(options:any) {
     return new Promise((resolve, reject) => {
       request(options, (err, res, body) => {
+        // console.log(body);
         if(res.statusCode===200) return resolve(body);
         return resolve();
       });
