@@ -11,6 +11,9 @@ export class Api {
   queryDb: Datastore;
   editorDb: Datastore;
   dbInstance:string;
+  vimMode:boolean;
+  fontSize:number;
+  recordId:string;
 
   constructor({db, dbName}) {
     let filename: string;
