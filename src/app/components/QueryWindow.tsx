@@ -5,7 +5,7 @@ import * as Promise from 'bluebird';
 import AceEditor from 'react-ace';
 import { Api } from '../lib/api';
 import { CucmSql } from '../lib/cucm-sql';
-
+import { editorConfig } from '../vendor';
 import * as $ from 'jquery'
  
 import 'brace/mode/mysql';
@@ -56,12 +56,16 @@ export class QueryWindow extends React.Component<any,any> {
     this._rowDblClick = this._rowDblClick.bind(this);
   }
   componentWillMount() {
+    setTimeout(() => {
+      let { vimMode, fontSize, recordId } = editorConfig;
+      this._setEditorMode(null, vimMode);
+      this.setState({ fontSize });
+    }, 500)
     let queryApi = new Api({ db: 'queryDb', dbName: 'cucm-query' }),
-        editorSettingsApi = new Api({ db: 'editorDb', dbName: 'editor-config' }),
         selectedQuery = this.state.selectedQuery,
         selectedStatement, aceFocus;
     Promise.all([
-      queryApi.get(), editorSettingsApi.get()
+      queryApi.get()
     ]).then((results:any) => {
       let queries, editorSettings;
       if(results[0].length===0) queries = queryApi.defaultQuery();
@@ -69,7 +73,7 @@ export class QueryWindow extends React.Component<any,any> {
       if(!selectedStatement) selectedStatement = queries[selectedQuery].query;
       if(this.props.view==='mainView') aceFocus = true;
       else aceFocus = false;
-      this.setState({ aceFocus, queries, selectedStatement, queryApi, editorSettingsApi });
+      this.setState({ aceFocus, queries, selectedStatement, queryApi });
       this._setEditorLine(this.state.editor);
     });
   }
@@ -145,11 +149,15 @@ export class QueryWindow extends React.Component<any,any> {
     }
   }
   _setEditorMode(e, checked) {
+    let _id = editorConfig.recordId,
+        fontSize = this.state.fontSize;
     const ace = require('brace');
     if(checked) this.state.editor.setKeyboardHandler('ace/keyboard/vim');
     else this.state.editor.setKeyboardHandler('');
-    this.setState({ vimMode: checked });
-    this.state.editor.focus();
+    editorConfig.update({ _id, vimMode: checked, fontSize }).then((num) => {
+      this.setState({ vimMode: checked });
+      this.state.editor.focus();
+    });
   }
   _rowDblClick(evt, rowIndex) {
     let { id } = evt.target,
