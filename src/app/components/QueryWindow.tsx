@@ -53,7 +53,6 @@ export class QueryWindow extends React.Component<any,any> {
     this._execQuery = this._execQuery.bind(this);
     this._saveQuery = this._saveQuery.bind(this);
     this._setEditorMode = this._setEditorMode.bind(this);
-    this._update = this._update.bind(this);
     this._rowDblClick = this._rowDblClick.bind(this);
   }
   componentWillMount() {
@@ -84,9 +83,6 @@ export class QueryWindow extends React.Component<any,any> {
   componentWillReceiveProps(nextProps) {
     let aceFocus = nextProps.view==='mainView' ? true: false;
     this.setState({ aceFocus });
-  }
-  _update(rows) {
-    this.setState({ rows });
   }
   _setEditorLine(editor) {
     setTimeout(() => {
