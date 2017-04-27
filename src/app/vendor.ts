@@ -26,4 +26,3 @@ editorConfig.get().then((settings:any) => {
     editorConfig.fontSize = fontSize;
   }
 });
-
