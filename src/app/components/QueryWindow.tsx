@@ -18,8 +18,14 @@ import {
   Paper, TextField, Divider, Drawer,
   Subheader, List, ListItem, makeSelectable,
   BottomNavigation, BottomNavigationItem,
-  Toggle, Dialog, FlatButton
+  Toggle, Dialog, FlatButton, Chip, Avatar
 } from 'material-ui';
+
+import {
+  indigo900, blue300, red300
+} from 'material-ui/styles/colors';
+
+import SvgIconErrorOutline from 'material-ui/svg-icons/alert/error-outline';
 
 let SelectableList = makeSelectable(List);
 
@@ -124,8 +130,11 @@ export class QueryWindow extends React.Component<any,any> {
       delete account.name;
       delete account.selected;
       let cucmHandler = new CucmSql(account);
-      cucmHandler.query(this.state.selectedStatement).then((resp) => {
-        let { columns, rows } = resp;
+      cucmHandler.query(this.state.selectedStatement).then((resp:any) => {
+        let { columns, rows, errCode, errMessage } = resp;
+        if(errCode) {
+          return this.setState({ sqlError: true, errMessage });
+        }
         let columnWidths = columns.reduce((o, col) => {
           o[col] = 200;
           return o;
@@ -135,7 +144,7 @@ export class QueryWindow extends React.Component<any,any> {
     });
   }
   _saveQuery() {
-    let { selectedStatement, selectedQuery, queries } = this.state,
+    let { selectedStatement, selectedQuery, queries, queryApi } = this.state,
         current = selectedStatement,
         old = queries[selectedQuery],
         oldQuery;
@@ -144,7 +153,10 @@ export class QueryWindow extends React.Component<any,any> {
     } else {
       oldQuery = old.query;
       if(current !== oldQuery) {
+        queries[selectedQuery].query = current;
         console.log('statement changed');
+        this.setState({ queries })
+        queryApi.update(queries[selectedQuery]);
       }
     }
   }
@@ -168,8 +180,7 @@ export class QueryWindow extends React.Component<any,any> {
     setTimeout(() => $(`input[name="${id}"`).focus(), 0);
   }
   render() {
-    let aceFocus = this.state.aceFocus,
-        datalist = [{first: 'Contents 1'}, {second: 'Contents 2'}];
+    let aceFocus = this.state.aceFocus;
     return (
       <div>
         <Drawer open={true} width={this.state.drawerWidth}
@@ -345,6 +356,16 @@ export class QueryWindow extends React.Component<any,any> {
                 })
               }
             </Table>
+          </div>
+          <div style={{ display: this.state.sqlError ? 'block': 'none'}}>
+            <Chip
+              backgroundColor={blue300}
+              onTouchTap={()=>{}}
+              style={{ margin: 20 }}
+              labelStyle={{fontSize:'16px'}}>
+              <Avatar size={32} color={red300} backgroundColor={indigo900} icon={<SvgIconErrorOutline />} />
+              {this.state.errMessage}
+            </Chip>
           </div>
         </div>
         <Dialog open={this.state.saveDialog}

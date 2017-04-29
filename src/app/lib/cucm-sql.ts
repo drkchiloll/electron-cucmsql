@@ -28,6 +28,21 @@ export class CucmSql {
     });
   }
 
+  parseErrorResp(data:string) {
+    const doc = new dom().parseFromString(data);
+    let errCode, errMessage;
+    if(doc.getElementsByTagName('axlcode').length >= 1) {
+      errCode = doc.getElementsByTagName('axlcode')[0].textContent;
+      errMessage = doc.getElementsByTagName('axlmessage')[0].textContent;
+    } else {
+      errCode = 'none';
+      errMessage = 'No Errors';
+    }
+    return new Promise((resolve,reject) => 
+      resolve({ errCode, errMessage })
+    );
+  }
+
   gridify(data:any) {
     let keys = Object.keys(data[0]);
     return Promise.all([
@@ -85,20 +100,21 @@ export class CucmSql {
   }
 
   query(statement:string) {
-    return this._req(this._options(
-      this.setDoc({action:'Query', statement})
-    )).then((data:string) => 
-      this.parseResp(data)
-    ).then((moreData) => {
-      return Promise.all([
-        this.fixDataGridColumnize(moreData), this.fixedDataRowify(moreData)
-      ]);
-    }).then(results => {
-      return {
-        columns: results[0],
-        rows: results[1]
-      };
-    });
+    let doc = this.setDoc({action:'Query', statement});
+    // console.log(doc);
+    return this._req(this._options(doc)
+      ).then((data:string) =>
+        this.parseResp(data)
+      ).then((moreData) => {
+        return Promise.all([
+          this.fixDataGridColumnize(moreData), this.fixedDataRowify(moreData)
+        ]);
+      }).then(results => {
+        return {
+          columns: results[0],
+          rows: results[1]
+        };
+      }).catch(this.parseErrorResp);
   }
 
   update(statement:string) {}
@@ -120,7 +136,7 @@ export class CucmSql {
   private _req(options:any) {
     return new Promise((resolve, reject) => {
       request(options, (err, res, body) => {
-        // console.log(body);
+        if(res.statusCode >= 500 && res.statusCode <= 599) return reject(body);
         if(res.statusCode===200) return resolve(body);
         return resolve();
       });
