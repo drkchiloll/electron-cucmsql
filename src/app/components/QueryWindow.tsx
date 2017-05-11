@@ -66,7 +66,7 @@ export class QueryWindow extends React.Component<any,any> {
       let { vimMode, fontSize, recordId } = editorConfig;
       this._setEditorMode(null, vimMode);
       this.setState({ fontSize });
-    }, 500)
+    }, 600)
     let queryApi = new Api({ db: 'queryDb', dbName: 'cucm-query' }),
         selectedQuery = this.state.selectedQuery,
         selectedStatement, aceFocus;
