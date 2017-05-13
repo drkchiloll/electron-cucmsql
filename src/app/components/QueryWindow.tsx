@@ -50,6 +50,7 @@ export class QueryWindow extends React.Component<any,any> {
       openTable: false,
       columns: [],
       rows: [[';D)']],
+      rowHeight: 50,
       columnWidths: null,
       hrTop: 275,
       editorHeight: 200
@@ -139,7 +140,11 @@ export class QueryWindow extends React.Component<any,any> {
           o[col] = 200;
           return o;
         },{});
-        this.setState({ columns, rows, columnWidths, openTable: true });
+        let rowHeight = 50;
+        if(rows[0].length === 1 && columns[0] === 'Error' ) rowHeight = 95;
+        this.setState({
+          columns, rows, columnWidths, openTable: true, rowHeight
+        });
       });
     });
   }
@@ -306,7 +311,7 @@ export class QueryWindow extends React.Component<any,any> {
           <div style={{ display: this.state.openTable ? 'block': 'none' }}>
             <Table
               rowsCount={this.state.rows[0].length}
-              rowHeight={50}
+              rowHeight={this.state.rowHeight}
               headerHeight={50}
               width={this.state.editorWidth}
               height={500}
