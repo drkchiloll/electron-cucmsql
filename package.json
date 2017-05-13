@@ -7,7 +7,7 @@
     "clean": "cd dist && rm app.bundle.js app.bundle.js.map main.bundle.js main.bundle.js.map && cd ..",
     "build:dev": "node_modules/.bin/webpack --watch --progress --profile",
     "build:dist": "NODE_ENV=production node_modules/.bin/webpack --progress --colors",
-    "start": "electron .",
+    "start": "node_modules/.bin/electron .",
     "package": "node_modules/.bin/electron-packager ./ AppName --platform=darwin --arch=x64 --prune=true --ignore=src/app --ignore=node_modules/@types --ignore=node_modules/electron* --app-version=0.0.1 --icon ./resources/iconForApp.icns"
   },
   "dependencies": {},
@@ -35,6 +35,7 @@
     "file-loader": "^0.10.1",
     "fixed-data-table-2": "^0.7.15",
     "font-awesome": "^4.7.0",
+    "fsevents": "^1.1.1",
     "jquery": "^3.1.1",
     "json-loader": "^0.5.4",
     "material-ui": "^0.17.4",
