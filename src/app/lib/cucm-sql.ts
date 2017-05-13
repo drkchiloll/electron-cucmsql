@@ -20,6 +20,9 @@ export class CucmSql {
   parseResp(data:string) {
     const doc = new dom().parseFromString(data);
     let rows = Array.from(doc.getElementsByTagName('row'));
+    if(rows && rows.length === 0) {
+      return [];
+    }
     return Promise.map(rows, row => {
       return Array.from(row.childNodes).reduce((o, child) => {
         o[child.nodeName] = child.textContent;
@@ -38,9 +41,12 @@ export class CucmSql {
       errCode = 'none';
       errMessage = 'No Errors';
     }
-    return new Promise((resolve,reject) => 
-      resolve({ errCode, errMessage })
-    );
+    return new Promise((resolve,reject) => {
+      resolve({
+        columns: ['Error'],
+        rows: [ [{ Error: `AxlError: ${errCode} ${errMessage}` }] ]
+      });
+    });
   }
 
   gridify(data:any) {
@@ -101,15 +107,20 @@ export class CucmSql {
 
   query(statement:string) {
     let doc = this.setDoc({action:'Query', statement});
-    // console.log(doc);
     return this._req(this._options(doc)
       ).then((data:string) =>
         this.parseResp(data)
-      ).then((moreData) => {
+      ).then((moreData:any) => {
+        if(moreData.length === 0) return undefined;
         return Promise.all([
           this.fixDataGridColumnize(moreData), this.fixedDataRowify(moreData)
         ]);
-      }).then(results => {
+      }).then((results:any) => {
+        if(!results) {
+          results = [];
+          results[0] = ['RESULT'];
+          results[1] = [[{RESULT: 'No Results from Query'}]];
+        }
         return {
           columns: results[0],
           rows: results[1]
