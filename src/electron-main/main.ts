@@ -1,38 +1,41 @@
 import * as electron from 'electron';
-import { app, BrowserWindow, Menu } from 'electron';
+import {
+  app, BrowserWindow, Menu
+} from 'electron';
 import { AppMenu } from './menu';
 
-class MyApplication {
-	mainWindow: Electron.BrowserWindow = null;
+class CucmSqlQueryTool {
+  mainWindow: Electron.BrowserWindow;
 
-	constructor(public app: Electron.App){
-		this.app.on('window-all-closed', this.onWindowAllClosed);
-		this.app.on('ready', this.onReady);
-	}
+  constructor(
+    public app: Electron.App
+  ) {
+    this.app.on('ready', this._onReady);
+    this.app.on(
+      'window-all-closed',
+      this._onWindowAllClosed
+    );
+  }
 
-	onWindowAllClosed(){
-		if(process.platform != 'darwin'){
-			app.quit();
-		}
-	}
+  _onReady() {
+    this.mainWindow = new BrowserWindow({
+      width:1024,
+      height:768,
+      minWidth:1024,
+      minHeight:600,
+      acceptFirstMouse:true
+    });
 
-	onReady(){
-		this.mainWindow = new BrowserWindow({
-			width: 1024,
-			height: 768,
-			minWidth: 1024,
-			minHeight: 600,
-			acceptFirstMouse: true
-		});
+    this.mainWindow.loadURL(`file://${__dirname}/index.html`);
+    this.mainWindow.on('closed', () => this.mainWindow = null);
+    Menu.setApplicationMenu(AppMenu);
+  }
 
-		// this.mainWindow.webContents.openDevTools();
-		this.mainWindow.loadURL('file://' + __dirname + '/index.html');
-
-		this.mainWindow.on('closed', () => {
-			this.mainWindow = null;
-		});
-		Menu.setApplicationMenu(AppMenu);
-	}
+  _onWindowAllClosed() {
+    if(process.platform != 'darwin') {
+      app.quit();
+    }
+  }
 }
 
-const myapp = new MyApplication(app);
+const sqlApp = new CucmSqlQueryTool(app);
