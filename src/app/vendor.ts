@@ -26,3 +26,8 @@ editorConfig.get().then((settings:any) => {
     editorConfig.fontSize = fontSize;
   }
 });
+
+import * as si from 'systeminformation';
+si.system().then((info) => {
+  console.log(info.serial);
+});
