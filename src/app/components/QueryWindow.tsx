@@ -1,31 +1,13 @@
-import * as React from 'react';
-import * as ReactDOM from 'react-dom';
-import * as brace from 'brace';
-import * as Promise from 'bluebird';
-import AceEditor from 'react-ace';
-import { Api } from '../lib/api';
-import { CucmSql } from '../lib/cucm-sql';
-import { editorConfig } from '../vendor';
-import * as $ from 'jquery'
- 
-import 'brace/mode/mysql';
-import 'brace/theme/monokai';
-import 'brace/keybinding/vim';
-
-import { Table, Column, Cell } from 'fixed-data-table-2';
-
 import {
+  React, ReactDOM, brace,
+  Promise, AceEditor, Api, CucmSql,
+  editorConfig, $, Table, Column, Cell,
   Paper, TextField, Divider, Drawer,
   Subheader, List, ListItem, makeSelectable,
   BottomNavigation, BottomNavigationItem,
-  Toggle, Dialog, FlatButton, Chip, Avatar
-} from 'material-ui';
-
-import {
-  indigo900, blue300, red300
-} from 'material-ui/styles/colors';
-
-import SvgIconErrorOutline from 'material-ui/svg-icons/alert/error-outline';
+  Toggle, Dialog, FlatButton, Chip, Avatar,
+  indigo900, blue300, red300, SvgIconErrorOutline
+} from './index';
 
 let SelectableList = makeSelectable(List);
 
@@ -67,7 +49,7 @@ export class QueryWindow extends React.Component<any,any> {
       let { vimMode, fontSize, recordId } = editorConfig;
       this._setEditorMode(null, vimMode);
       this.setState({ fontSize });
-    }, 600)
+    }, 800)
     let queryApi = new Api({ db: 'queryDb', dbName: 'cucm-query' }),
         selectedQuery = this.state.selectedQuery,
         selectedStatement, aceFocus;
@@ -131,7 +113,18 @@ export class QueryWindow extends React.Component<any,any> {
       delete account.name;
       delete account.selected;
       let cucmHandler = new CucmSql(account);
-      cucmHandler.query(this.state.selectedStatement).then((resp:any) => {
+      let sqlStatement = JSON.parse(
+        JSON.stringify(this.state.selectedStatement)
+      );
+      /*
+      let registered = false;
+      if(!registered) {
+        let insertIndex = sqlStatement.indexOf(' ');
+        sqlStatement =
+          sqlStatement.replace(' ', ' skip 0 first 5');
+      }
+      */
+      cucmHandler.query(sqlStatement).then((resp:any) => {
         let { columns, rows, errCode, errMessage } = resp;
         if(errCode) {
           return this.setState({ sqlError: true, errMessage });
