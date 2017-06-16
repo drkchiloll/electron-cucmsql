@@ -12,6 +12,8 @@ import {
 
 let SelectableList = makeSelectable(List);
 
+import CsvCreator from 'react-csv-creator';
+
 export class QueryWindow extends React.Component<any,any> {
   constructor(props) {
     super(props);
@@ -36,7 +38,9 @@ export class QueryWindow extends React.Component<any,any> {
       rowHeight: 50,
       columnWidths: null,
       hrTop: 275,
-      editorHeight: 200
+      editorHeight: 200,
+      headers: [{id:'first',display: 'Generic'}],
+      rowData: [{first:'generic'}]
     };
     this._queryChange = this._queryChange.bind(this);
     this._newQuery = this._newQuery.bind(this);
@@ -106,6 +110,30 @@ export class QueryWindow extends React.Component<any,any> {
     this.setState({ selectedStatement, selectedQuery });
     this.state.editor.focus();
   }
+  helpProp(num:number) {
+    switch(num) {
+      case 1: return 'first';
+      case 2: return 'second';
+      case 3: return 'third';
+      case 4: return 'fourth';
+      case 5: return 'fifth';
+      case 6: return 'sixth';
+      case 7: return 'seventh';
+      case 8: return 'eighth';
+      case 9: return 'ninth';
+      case 10: return 'tenth';
+      case 11: return 'eleventh';
+      case 12: return 'twelveth';
+      case 13: return 'thirteenth';
+      case 14: return 'fourteenth';
+      case 15: return 'fifthteenth';
+      case 16: return 'sixteenth';
+      case 17: return 'seventeenth';
+      case 18: return 'eighteenth';
+      case 19: return 'nineteenth';
+      case 20: return 'twentieth';
+    }
+  }
   _execQuery() {
     let dbApi = new Api({ db: 'acctDb', dbName: 'accounts' });
     dbApi.get({ selected: true}).then((record) => {
@@ -126,7 +154,7 @@ export class QueryWindow extends React.Component<any,any> {
       }
       */
       cucmHandler.query(sqlStatement).then((resp:any) => {
-        let { columns, rows, errCode, errMessage } = resp;
+        let { columns, rows, csvRows, errCode, errMessage } = resp;
         if(errCode) {
           return this.setState({ sqlError: true, errMessage });
         }
@@ -136,8 +164,9 @@ export class QueryWindow extends React.Component<any,any> {
         },{});
         let rowHeight = 50;
         if(rows[0].length === 1 && columns[0] === 'Error' ) rowHeight = 95;
+        const HEADERS = columns.map((col:any, i) => ({ id: col }));
         this.setState({
-          columns, rows, columnWidths, openTable: true, rowHeight
+          columns, rows, columnWidths, openTable: true, rowHeight, headers: HEADERS, rowData: csvRows
         });
       });
     });
@@ -303,12 +332,26 @@ export class QueryWindow extends React.Component<any,any> {
               onToggle={this._setEditorMode} />
           </div>
           <div style={{ display: this.state.openTable ? 'block': 'none' }}>
+            <div style={{width:50}}>
+              <CsvCreator
+                filename='data-exporter'
+                headers={this.state.headers}
+                rows={this.state.rowData}
+              >
+                <FlatButton
+                  label="EXPORT"
+                  labelPosition="before"
+                  primary={true}
+                  icon={<FontIcon color={'blue'} className='fa fa-external-link' />}
+                />
+              </CsvCreator>
+            </div>
             <Table
               rowsCount={this.state.rows[0].length}
               rowHeight={this.state.rowHeight}
               headerHeight={50}
               width={this.state.editorWidth}
-              height={480}
+              height={485}
               onColumnResizeEndCallback={(newWidth, columnKey) => {
                 let columnWidths = this.state.columnWidths;
                 columnWidths[columnKey] = newWidth;
@@ -355,9 +398,6 @@ export class QueryWindow extends React.Component<any,any> {
                 })
               }
             </Table>
-            <IconButton tooltip='Export to CSV' tooltipPosition='top-right' >
-              <FontIcon className='fa fa-external-link' />
-            </IconButton>
           </div>
           <div style={{ display: this.state.sqlError ? 'block': 'none'}}>
             <Chip

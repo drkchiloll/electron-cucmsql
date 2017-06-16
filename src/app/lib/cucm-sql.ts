@@ -107,11 +107,13 @@ export class CucmSql {
 
   query(statement:string) {
     let doc = this.setDoc({action:'Query', statement});
+    let csvRows:any;
     return this._req(this._options(doc)
       ).then((data:string) =>
         this.parseResp(data)
       ).then((moreData:any) => {
         if(moreData.length === 0) return undefined;
+        csvRows = moreData;
         return Promise.all([
           this.fixDataGridColumnize(moreData), this.fixedDataRowify(moreData)
         ]);
@@ -123,7 +125,8 @@ export class CucmSql {
         }
         return {
           columns: results[0],
-          rows: results[1]
+          rows: results[1],
+          csvRows
         };
       }).catch(this.parseErrorResp);
   }

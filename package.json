@@ -43,6 +43,7 @@
     "prop-types": "^15.5.8",
     "react": "^15.5.4",
     "react-ace": "^4.2.1",
+    "react-csv-creator": "^1.0.2",
     "react-dom": "^15.5.4",
     "react-tap-event-plugin": "^2.0.1",
     "request": "^2.79.0",
