@@ -15,17 +15,18 @@ import 'brace/keybinding/vim';
 import { Table, Column, Cell } from 'fixed-data-table-2';
 
 import {
-  Paper, TextField, Divider, Drawer,
-  Subheader, List, ListItem, makeSelectable,
-  BottomNavigation, BottomNavigationItem,
-  Toggle, Dialog, FlatButton, Chip, Avatar
-} from 'material-ui';
-
-import {
   indigo900, blue300, red300
 } from 'material-ui/styles/colors';
 
 import SvgIconErrorOutline from 'material-ui/svg-icons/alert/error-outline';
+
+import {
+  Paper, TextField, Divider, Drawer,
+  Subheader, List, ListItem, makeSelectable,
+  BottomNavigation, BottomNavigationItem,
+  Toggle, Dialog, FlatButton, Chip, Avatar,
+  IconButton, FontIcon
+} from 'material-ui';
 
 export {
   React, ReactDOM, brace,
@@ -35,7 +36,8 @@ export {
   Subheader, List, ListItem, makeSelectable,
   BottomNavigation, BottomNavigationItem,
   Toggle, Dialog, FlatButton, Chip, Avatar,
-  indigo900, blue300, red300, SvgIconErrorOutline
+  indigo900, blue300, red300, SvgIconErrorOutline,
+  IconButton, FontIcon
 };
 
 // Component Exports

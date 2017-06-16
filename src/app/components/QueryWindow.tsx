@@ -6,7 +6,8 @@ import {
   Subheader, List, ListItem, makeSelectable,
   BottomNavigation, BottomNavigationItem,
   Toggle, Dialog, FlatButton, Chip, Avatar,
-  indigo900, blue300, red300, SvgIconErrorOutline
+  indigo900, blue300, red300, SvgIconErrorOutline,
+  IconButton, FontIcon
 } from './index';
 
 let SelectableList = makeSelectable(List);
@@ -307,7 +308,7 @@ export class QueryWindow extends React.Component<any,any> {
               rowHeight={this.state.rowHeight}
               headerHeight={50}
               width={this.state.editorWidth}
-              height={500}
+              height={480}
               onColumnResizeEndCallback={(newWidth, columnKey) => {
                 let columnWidths = this.state.columnWidths;
                 columnWidths[columnKey] = newWidth;
@@ -354,6 +355,9 @@ export class QueryWindow extends React.Component<any,any> {
                 })
               }
             </Table>
+            <IconButton tooltip='Export to CSV' tooltipPosition='top-right' >
+              <FontIcon className='fa fa-external-link' />
+            </IconButton>
           </div>
           <div style={{ display: this.state.sqlError ? 'block': 'none'}}>
             <Chip
