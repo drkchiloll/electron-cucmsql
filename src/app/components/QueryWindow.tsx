@@ -7,12 +7,9 @@ import {
   BottomNavigation, BottomNavigationItem,
   Toggle, Dialog, FlatButton, Chip, Avatar,
   indigo900, blue300, red300, SvgIconErrorOutline,
-  IconButton, FontIcon
+  IconButton, FontIcon, Snackbar, LinearProgress,
+  SelectableList, CsvCreator, fs
 } from './index';
-
-let SelectableList = makeSelectable(List);
-
-import CsvCreator from 'react-csv-creator';
 
 export class QueryWindow extends React.Component<any,any> {
   constructor(props) {
@@ -20,9 +17,12 @@ export class QueryWindow extends React.Component<any,any> {
     this.state = {
       aceFocus: false,
       saveDialog: false,
+      fileDialog: false,
       vimMode: false,
       editor: null,
       selectedStatement: '',
+      updateStatements: null,
+      queryStatements: null,
       queryName: '',
       drawerWidth: 310,
       editorWidth: window.innerWidth - 310,
@@ -38,9 +38,16 @@ export class QueryWindow extends React.Component<any,any> {
       rowHeight: 50,
       columnWidths: null,
       hrTop: 275,
-      editorHeight: 200,
+      editorHeight: 435,
       headers: [{id:'first',display: 'Generic'}],
-      rowData: [{first:'generic'}]
+      rowData: [{first:'generic'}],
+      openSnack: false,
+      execMsg: '',
+      completed: 10,
+      showProgress: false,
+      progressBar: 'indeterminate',
+      progressValue: 100,
+      progressColor: 'green'
     };
     this._queryChange = this._queryChange.bind(this);
     this._newQuery = this._newQuery.bind(this);
@@ -48,6 +55,12 @@ export class QueryWindow extends React.Component<any,any> {
     this._saveQuery = this._saveQuery.bind(this);
     this._setEditorMode = this._setEditorMode.bind(this);
     this._rowDblClick = this._rowDblClick.bind(this);
+    this._upload = this._upload.bind(this);
+    this._execUpdateQuery = this._execUpdateQuery.bind(this);
+    this._handleErrors = this._handleErrors.bind(this);
+    this._clear = this._clear.bind(this);
+    this._updateVmp = this._updateVmp.bind(this);
+    this._handler = this._handler.bind(this);
   }
   componentWillMount() {
     setTimeout(() => {
@@ -67,7 +80,9 @@ export class QueryWindow extends React.Component<any,any> {
       if(!selectedStatement) selectedStatement = queries[selectedQuery].query;
       if(this.props.view==='mainView') aceFocus = true;
       else aceFocus = false;
-      this.setState({ aceFocus, queries, selectedStatement, queryApi });
+      let queryName = queries[selectedQuery].name;
+      console.log(queryName);
+      this.setState({ aceFocus, queries, selectedStatement, queryApi, queryName });
       this._setEditorLine(this.state.editor);
     });
   }
@@ -88,13 +103,16 @@ export class QueryWindow extends React.Component<any,any> {
           column = editor.session.getLine(row).length;
       editor.focus();
       editor.gotoLine(row + 1, column);
+      // editor.setOptions({ maxLines: 25 });
     },0);
   }
   _queryChange(e, value) {
-    let selectedStatement = this.state.queries[value].query;
+    let selectedStatement = this.state.queries[value].query,
+        queryName = this.state.queries[value].name;
     this.setState({
       selectedQuery: value,
-      selectedStatement
+      selectedStatement,
+      queryName
     });
     this._setEditorLine(this.state.editor);
   }
@@ -134,41 +152,101 @@ export class QueryWindow extends React.Component<any,any> {
       case 20: return 'twentieth';
     }
   }
-  _execQuery() {
+  _getAccount() {
     let dbApi = new Api({ db: 'acctDb', dbName: 'accounts' });
-    dbApi.get({ selected: true}).then((record) => {
+    return dbApi.get({ selected: true }).then((record:any) => {
       let account = record[0];
       delete account._id;
       delete account.name;
       delete account.selected;
+      return account;      
+    });
+  }
+  _handleErrors(message) {
+    return this.setState({ sqlError: true, errMessage: message });
+  }
+  _calculateColWidths(cols) {
+    return cols.reduce((o, col) => {
+      o[col] = 200;
+      return o;
+    }, {});
+  }
+  _getCSVHeaders(cols) {
+    return cols.map((col, i) => ( { id: col }));
+  }
+  _handler({ handle, statement, action }) {
+    return handle[action](statement)
+      .catch(err => {
+        this.setState({
+          progressBar: 'determinate',
+          progressColor: 'red'
+        });
+        return {
+          columns: ['RESULT'],
+          rows: [[{RESULT: 'Query Timeout Probably from Network Error'}]],
+          csvRows: [{ RESULT: 'Query Timeout' }]
+        };
+      });
+  }
+  _execQuery() {
+    this.setState({ showProgress: true });
+    console.log(this.state.queryName);
+    this._getAccount().then((account:any) => {
       let cucmHandler = new CucmSql(account);
       let sqlStatement = JSON.parse(
         JSON.stringify(this.state.selectedStatement)
       );
-      /*
-      let registered = false;
-      if(!registered) {
-        let insertIndex = sqlStatement.indexOf(' ');
-        sqlStatement =
-          sqlStatement.replace(' ', ' skip 0 first 5');
-      }
-      */
-      cucmHandler.query(sqlStatement).then((resp:any) => {
-        let { columns, rows, csvRows, errCode, errMessage } = resp;
-        if(errCode) {
-          return this.setState({ sqlError: true, errMessage });
-        }
-        let columnWidths = columns.reduce((o, col) => {
-          o[col] = 200;
-          return o;
-        },{});
-        let rowHeight = 50;
-        if(rows[0].length === 1 && columns[0] === 'Error' ) rowHeight = 95;
-        const HEADERS = columns.map((col:any, i) => ({ id: col }));
-        this.setState({
-          columns, rows, columnWidths, openTable: true, rowHeight, headers: HEADERS, rowData: csvRows
+      if(this.state.updateStatements) {
+        let columns = JSON.parse(JSON.stringify(this.state.columns)),
+          rows = JSON.parse(JSON.stringify(this.state.rows)),
+          rowData = JSON.parse(JSON.stringify(this.state.rowData)),
+          headers = JSON.parse(JSON.stringify(this.state.headers));
+        let { updateStatements, queryStatements } = this.state;
+        let execMsg = '';
+        return Promise.each(updateStatements, (statement:string, i) => {
+          return this._handler({
+            handle: cucmHandler,
+            statement,
+            action: 'update'
+          })
+            .then((res:any) =>
+              this._handler({
+                handle: cucmHandler,
+                statement: queryStatements[i],
+                action: 'query'
+              }))
+            .then((resp:any) => {
+              if(i === 0) {
+                columns.push('New VM Profile');
+                headers.push({ id: 'New VM Profile' });
+                rows[4] = [];
+              }
+              if(!rows[4]) rows[4] = [];
+              rows[4].push({ 'New VM Profile': resp.rows[2][0].vmprofile });
+              if(rowData && rowData[i]) rowData[i]['New VM Profile'] = resp.rows[2][0].vmprofile;
+            });
+        }).then(() => {
+          let columnWidths = this._calculateColWidths(columns);
+          this.setState({ columns, rowData, rows, headers, columnWidths, showProgress: false });
+        })
+      } else {
+        this._handler({
+          handle: cucmHandler,
+          statement: sqlStatement,
+          action: 'query'
+        }).then((resp:any) => {
+          let { columns, rows, csvRows, errCode, errMessage } = resp;
+          if(errCode) return this._handleErrors(errMessage);
+          let columnWidths = this._calculateColWidths(columns);
+          let rowHeight = 50;
+          if(rows[0].length === 1 && columns[0] === 'Error' ) rowHeight = 95;
+          const HEADERS = this._getCSVHeaders(columns);
+          this.setState({
+            columns, rows, columnWidths, openTable: true, rowHeight, headers: HEADERS, rowData: csvRows,
+            showProgress: false
+          });
         });
-      });
+      }
     });
   }
   _saveQuery() {
@@ -188,6 +266,43 @@ export class QueryWindow extends React.Component<any,any> {
       }
     }
   }
+  _upload() {
+    let file = $('#csv-upload').prop('files')[0],
+      csv = fs.readFileSync(file.path).toString().split('\n'),
+      data = csv.shift(),
+      sqlStatement = this.state.selectedStatement,
+      queryName = this.state.queryName,
+      selectedStatement = '',
+      queryStatements = [];
+    this.setState({ showProgress: true });
+    // value 1: dn, value 2: partition, value 3: new VM Profile
+    switch(queryName) {
+      case 'Update VMProfile':
+        return this._updateVmp({
+          csv, sqlStatement, queryName
+        });
+    }
+  }
+  _updateVmp({ csv, sqlStatement, queryName }) {
+    let selectedStatement = '',
+        queryStatements = [];
+    csv.forEach((values: any, i: number) => {
+      let v = values.split(','),
+        dn = v[0].replace('\r', ''),
+        rp = v[1].replace('\r', ''),
+        vmp = v[2].replace('\r', '');
+      if(i + 1 === csv.length) {
+        selectedStatement += sqlStatement.replace('%1', vmp).replace('%2', rp).replace('%3', dn) + '\n';
+      } else {
+        selectedStatement += sqlStatement.replace('%1', vmp).replace('%2', rp).replace('%3', dn) + '\r\r';
+      }
+      queryStatements.push(this.initDeviceStatement({ dn, partition: rp }));
+    });
+    this.setState({ selectedStatement, updateStatements: selectedStatement.split('\r\r'), queryStatements });
+    this._setEditorLine(this.state.editor);
+    this.setState({ fileDialog: false });
+    this._execUpdateQuery(queryStatements);
+  }
   _setEditorMode(e, checked) {
     let _id = editorConfig.recordId,
         fontSize = this.state.fontSize;
@@ -206,6 +321,22 @@ export class QueryWindow extends React.Component<any,any> {
     $(divId).toggle();
     $(txtClass).toggle()
     setTimeout(() => $(`input[name="${id}"`).focus(), 0);
+  }
+  _clear() {
+    let {
+      selectedQuery, rows, rowData, columns, columnWidths, updateStatements
+    } = this.state;
+    let selectedStatement;
+    let queryApi = new Api({ db: 'queryDb', dbName: 'cucm-query' });
+    queryApi.get().then((results:any) => {
+      selectedStatement = results[selectedQuery].query;
+      this.setState({
+        selectedStatement, rows: [[';D)']], rowData: [{ first: 'generic' }],
+        columns: [], columnWidths: null,
+        openTable: false, updateStatements: null,
+        progressBar: 'indeterminate', progressColor: 'green'
+      });
+    });
   }
   render() {
     let aceFocus = this.state.aceFocus;
@@ -249,7 +380,7 @@ export class QueryWindow extends React.Component<any,any> {
               }
               label='Execute SQL'
               onTouchTap={this._execQuery}/>
-            <BottomNavigationItem
+            {/* <BottomNavigationItem
               className='new-query'
               icon={
                 <span className="fa-stack fa-lg">
@@ -267,7 +398,34 @@ export class QueryWindow extends React.Component<any,any> {
                 </span>
               }
               label='Save'
-              onClick={this._saveQuery}/>
+              onClick={this._saveQuery}/> */}
+            <BottomNavigationItem
+              className='upload-csv'
+              icon={
+                <span className='fa-stack fa-lg'>
+                  <i className='fa fa-cloud-upload fa-lg' />
+                </span>
+              }
+              label='Upload CSV'
+              onClick={() => this.setState({ fileDialog: true })} />
+            <BottomNavigationItem
+              className='save-query'
+              icon={
+                <span className='fa-stack fa-lg'>
+                  <i className='fa fa-hdd-o fa-stack-2x' />
+                </span>
+              }
+              label='Save Query'
+              onClick={this._saveQuery} />
+            <BottomNavigationItem
+              className='reset-query'
+              icon={
+                <span className='fa-stack fa-lg'>
+                  <i className='fa fa-refresh fa-lg' />
+                </span>
+              }
+              label='Reset Query'
+              onClick={this._clear} />
           </BottomNavigation>
           <AceEditor
             mode='mysql'
@@ -281,6 +439,15 @@ export class QueryWindow extends React.Component<any,any> {
               this.setState({ editor });
             }}
             onChange={(sql) => {
+              if(this.state.editor.getSelectionRange().end.row >= 10) {
+                let row = this.state.editor.getSelectionRange().end.row + 1;
+                if(row > 20) {}
+                else  this.state.editor.setOptions({ maxLines: row });
+              } else if(this.state.editor.getSelectionRange().end.row < 10) {
+                if(this.state.editor.setOptions.maxLines) {
+                  delete this.state.editor.setOptions.maxLines;
+                }
+              }
               this.setState({ selectedStatement: sql });
             }}
             className='editor'
@@ -301,26 +468,31 @@ export class QueryWindow extends React.Component<any,any> {
               }
             }]}
             name='editor'
-            height={`${this.state.editorHeight}px`}
             width={`${this.state.editorWidth}px`}
+            height={`${this.state.editorHeight}px`}
             tabSize={2}
             fontSize={this.state.fontSize}
             highlightActiveLine={false}
             value={this.state.selectedStatement}
             enableBasicAutocompletion={true}
             enableLiveAutocompletion={true}
+            showPrintMargin={false}
             editorProps={{$blockScrolling: Infinity}}/>
-          <hr id='editorDivider'
+          {/* <hr id='editorDivider'
             style={{margin: 0, border: '2px solid #ffcccc'}}
             draggable={true}
             onMouseOver={() => $('#editorDivider').css('cursor','row-resize')}
             onMouseOut={()=>$('#editorDivider').css('cursor','row-resize')}
             onDragEnd={(e) => {
+               console.log(this.state.editor.getSelectionRange());
               if(e.pageY == 0) return;
               let editorHeight = 200 + e.pageY - 285 + 1;
-              this.setState({ editorHeight });
+              this.setState({ editorHeight: editorHeight.toString() });
               $('#editorDivider').css('cursor','pointer');
-            }} />
+            }} /> */}
+          <LinearProgress mode={this.state.progressBar}
+            color={this.state.progressColor} value={this.state.progressValue}
+            style={{ height: 12, display: this.state.showProgress ? 'block': 'none' }} />
           <div style={{float:'right'}}>
             <Toggle
               label='Enable VIM Mode'
@@ -334,16 +506,14 @@ export class QueryWindow extends React.Component<any,any> {
           <div style={{ display: this.state.openTable ? 'block': 'none' }}>
             <div style={{width:50}}>
               <CsvCreator
-                filename='data-exporter'
+                filename='export'
                 headers={this.state.headers}
-                rows={this.state.rowData}
-              >
+                rows={this.state.rowData}>
                 <FlatButton
                   label="EXPORT"
                   labelPosition="before"
                   primary={true}
-                  icon={<FontIcon color={'blue'} className='fa fa-external-link' />}
-                />
+                  icon={<FontIcon color='blue' className='fa fa-external-link' style={{fontSize: 18, top: 2}} />} />
               </CsvCreator>
             </div>
             <Table
@@ -351,7 +521,7 @@ export class QueryWindow extends React.Component<any,any> {
               rowHeight={this.state.rowHeight}
               headerHeight={50}
               width={this.state.editorWidth}
-              height={485}
+              height={400}
               onColumnResizeEndCallback={(newWidth, columnKey) => {
                 let columnWidths = this.state.columnWidths;
                 columnWidths[columnKey] = newWidth;
@@ -440,7 +610,64 @@ export class QueryWindow extends React.Component<any,any> {
             onChange={(e, value)=> this.setState({ queryName: value })}
             errorText='' />
         </Dialog>
+        <Dialog open={this.state.fileDialog}
+          title='Upload File'
+          modal={true}
+          style={{ width: 600, margin: '25px 0 0 25%', top: -250 }}
+          actions={[
+            <FlatButton label='Cancel'
+              primary={true}
+              onTouchTap={() => this.setState({ fileDialog: false })} />
+          ]} >
+          <input name='myFile' type='file' id='csv-upload' onChange={this._upload.bind(this)} />
+        </Dialog>
       </div>
+    );
+  }
+  _execUpdateQuery(statements) {
+    // console.log(statements);
+    let columns, rows, csvRows, columnWidths, rowHeight, HEADERS;
+    this._getAccount().then((account:any) => {
+      let cucmHandler = new CucmSql(account);
+      Promise.each(statements, (statement:any, i:number) => {
+        return cucmHandler.query(statement).then((resp:any) => {
+          if(i===0) {
+            columns = resp.columns;
+            HEADERS = columns.map((col: any, i) => ({ id: col }));
+            columnWidths = columns.reduce((o, col) => {
+              o[col] = 200;
+              return o;
+            }, {});
+            rowHeight = 50;
+            rows = resp.rows;
+            csvRows = resp.csvRows;
+          } else {
+            if(resp.rows) {
+              resp.rows.forEach((rs, i) => {
+                rows[i].push(rs[0]);
+              });
+              if(csvRows) csvRows = csvRows.concat(resp.csvRows);
+            }
+          }
+        })
+      }).then(() => {
+        this.setState({
+          columns, rows, columnWidths, openTable: true,
+          rowHeight, headers: HEADERS, rowData: csvRows,
+          showProgress: false
+        });
+      })
+    });
+  }
+  initDeviceStatement(params) {
+    return (
+      `SELECT d.name, n.dnorpattern as dn, vmp.name as vmprofile, rp.name as partition\n` +
+      `from device d\n` +
+      `inner join devicenumplanmap as dmap on dmap.fkdevice = d.pkid\n` +
+      `inner join numplan as n on dmap.fknumplan = n.pkid\n` +
+      `inner join routepartition as rp on n.fkroutepartition = rp.pkid\n` +
+      `inner join voicemessagingprofile as vmp on n.fkvoicemessagingprofile = vmp.pkid\n` +
+      `where n.dnorpattern='${params.dn}' and rp.name='${params.partition}'`
     );
   }
 }

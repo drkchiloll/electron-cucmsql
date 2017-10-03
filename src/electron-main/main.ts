@@ -4,6 +4,8 @@ import {
 } from 'electron';
 import { AppMenu } from './menu';
 
+import { Api, Promise } from '../app/components';
+
 class CucmSqlQueryTool {
   mainWindow: Electron.BrowserWindow;
 

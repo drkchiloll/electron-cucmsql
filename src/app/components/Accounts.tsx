@@ -9,7 +9,7 @@ import {
   SelectField, Snackbar
 } from 'material-ui';
 let SelectableList = makeSelectable(List);
-import { Api } from '../lib/api';
+import { Api, CucmSql, moment, Promise } from '../components';
 
 export class Accounts extends React.Component<any,any> {
   constructor() {
@@ -19,32 +19,51 @@ export class Accounts extends React.Component<any,any> {
       accounts: null,
       openAccounts: false,
       selectedAcct: 0,
+      account: null,
       openSnack: false,
       acctMsg: ''
     };
     this.handleAccountsToggle = this.handleAccountsToggle.bind(this);
     this.changeAcctValues = this.changeAcctValues.bind(this);
     this.save = this.save.bind(this);
+    this.testAccount = this.testAccount.bind(this);
   }
   componentWillMount() {
+    let accounts;
     let api = new Api({
       db: 'acctDb',
       dbName: 'accounts'
     });
     api.get().then((records:any) => {
       // console.log(records);
-      let accounts;
       if(records.length === 0) {
         accounts = [{
           name:'New Account', host:'',version:'8.5',
           username:'',password:'',selected: true
         }];
+        return accounts;
       } else {
-        accounts = records;
+        return Promise.map(records, (record:any) => {
+          if(new Date().getTime() - new Date(record.lastTested).getTime() > 86400000) {
+            record['status'] = 'red';
+            return api.update(record).then(() => {
+              return record;
+            });
+          }
+          return record;
+        })
       }
-      let selectedAcct = accounts.findIndex(acct=> acct.selected);
-      this.setState({ api, accounts, selectedAcct });
+    }).then((records) => {
+      accounts = records;
+      console.log(accounts);
+      let selectedAcct = accounts.findIndex(acct => acct.selected),
+        account = accounts[selectedAcct];
+      this.setState({ api, accounts, selectedAcct, account });
     });
+
+  }
+  componentWillUnmount() {
+    console.log('this component dismounted');
   }
   handleAccountsToggle() {
     this.setState({ openAccounts: !this.state.openAccounts });
@@ -72,6 +91,8 @@ export class Accounts extends React.Component<any,any> {
         this.setState({ accounts, openSnack: true, acctMsg });
       });
     } else {
+      account['status'] = 'red';
+      account['lastTested'] = null;
       this.state.api.add(account).then((doc) => {
         account._id = doc._id;
         acctMsg = `${account.name} added successfully`;
@@ -79,7 +100,36 @@ export class Accounts extends React.Component<any,any> {
       });
     }
   }
+  testAccount() {
+    let { accounts, selectedAcct } = this.state,
+      account = accounts[selectedAcct],
+      { host, version, username, password } = account;
+    let cucm = new CucmSql({ host, version, username, password }),
+      statement = cucm.testAxlQuery;
+    cucm.query(statement, true).then((resp) => {
+      console.log(resp);
+      account['lastTested'] = moment().toDate();
+      if(resp && resp instanceof Array) {
+        account['status'] = 'green';
+        return this.state.api.update(account);
+      } else if(resp.error) {
+        account['status'] = 'red';
+        return this.state.api.update(account);
+      }
+    }).then(() => {
+      this.state.api.get({ _id: account._id }).then((record) => {
+        account = record[0];
+        this.setState({ account });
+      });
+    })
+  }
   render() {
+    let testColor:string;
+    if(this.state.account && this.state.account.status) {
+      testColor = this.state.account.status;
+    } else {
+      testColor = 'red';
+    }
     const style = { marginLeft: 20 };
     const actions = [
       <FlatButton
@@ -91,13 +141,13 @@ export class Accounts extends React.Component<any,any> {
       />,
       <FlatButton
         label='Test'
-        icon={<FontIcon className='fa fa-plug' />}
+        icon={<FontIcon color={testColor} className='fa fa-plug' />}
         primary={true}
-        onTouchTap={this.props.acctClose}
+        onTouchTap={this.testAccount}
       />,
       <FlatButton
         label='Close'
-        icon={<FontIcon color='red' className='fa fa-window-close-o'/>}
+        icon={<FontIcon className='fa fa-window-close-o'/>}
         primary={true}
         onTouchTap={() => {
           this.props.acctClose();
@@ -145,7 +195,7 @@ export class Accounts extends React.Component<any,any> {
                         key={`acct_${i}`}
                         value={i}
                         primaryText={acct.name}
-                        rightIcon={<FontIcon color='green' className='fa fa-dot-circle-o' />}/>
+                        rightIcon={<FontIcon color={acct.status} className='fa fa-dot-circle-o' />}/>
                     );
                   })
                 }

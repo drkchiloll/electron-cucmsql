@@ -5,7 +5,12 @@ import { DOMParser as dom } from 'xmldom';
 
 export class CucmSql {
   readonly doc = template;
+  readonly testAxlQuery: string = (
+    `select skip 0 first 1 version from componentversion\n` +
+    `where softwarecomponent="master"`
+  );
   profile:ICucmSql;
+
   constructor(params:ICucmSql) {
     this.profile = params;
   }
@@ -18,6 +23,7 @@ export class CucmSql {
   }
 
   parseResp(data:string) {
+    // console.log(data);
     const doc = new dom().parseFromString(data);
     let rows = Array.from(doc.getElementsByTagName('row'));
     if(rows && rows.length === 0) {
@@ -28,11 +34,22 @@ export class CucmSql {
         o[child.nodeName] = child.textContent;
         return o;
       }, {})
+    }).then((object:any) => {
+      console.log(object);
+      return object;
     });
   }
 
-  parseErrorResp(data:string) {
-    const doc = new dom().parseFromString(data);
+  parseErrorResp(data:any) {
+    console.log(data);
+    if(data.statusCode === 599) {
+      return new Promise((resolve, reject) => {
+        resolve({ error: 'AXL Version Error' });
+      });
+    } else if(data && data.error) {
+      return new Promise((resolve, reject) => reject(data));
+    }
+    const doc = new dom().parseFromString(data.body);
     let errCode, errMessage;
     if(doc.getElementsByTagName('axlcode').length >= 1) {
       errCode = doc.getElementsByTagName('axlcode')[0].textContent;
@@ -105,19 +122,22 @@ export class CucmSql {
     }, []);
   }
 
-  query(statement:string) {
+  query(statement:string, simple:boolean=false) {
     let doc = this.setDoc({action:'Query', statement});
+    // console.log(doc);
     let csvRows:any;
-    return this._req(this._options(doc)
-      ).then((data:string) =>
-        this.parseResp(data)
-      ).then((moreData:any) => {
+    return this._req(this._options(doc))
+      .then((data:string) => this.parseResp(data))
+      .then((moreData:any) => {
+        if(simple) return moreData;
         if(moreData.length === 0) return undefined;
         csvRows = moreData;
         return Promise.all([
           this.fixDataGridColumnize(moreData), this.fixedDataRowify(moreData)
         ]);
-      }).then((results:any) => {
+      })
+      .then((results:any) => {
+        if(results && simple) return results;
         if(!results) {
           results = [];
           results[0] = ['RESULT'];
@@ -131,7 +151,14 @@ export class CucmSql {
       }).catch(this.parseErrorResp);
   }
 
-  update(statement:string) {}
+  update(statement:string) {
+    let doc = this.setDoc({ action: 'Update', statement });
+    // console.log(doc);
+    return this._req(this._options(doc)).then((data:string) => {
+      // console.log(data);
+      return data;
+    })
+  }
 
   private _options(body:string) {
     return {
@@ -143,14 +170,16 @@ export class CucmSql {
       strictSSL: false,
       method: 'POST',
       auth: {user: this.profile.username, pass: this.profile.password},
-      body
+      body,
+      timeout: 7500
     };
   }
 
   private _req(options:any) {
     return new Promise((resolve, reject) => {
       request(options, (err, res, body) => {
-        if(res.statusCode >= 500 && res.statusCode <= 599) return reject(body);
+        if(err) return reject({ error: err });
+        if(res.statusCode >= 500 && res.statusCode <= 599) return reject(res);
         if(res.statusCode===200) return resolve(body);
         return resolve();
       });

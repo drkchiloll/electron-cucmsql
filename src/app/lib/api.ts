@@ -60,10 +60,11 @@ export class Api {
   }
 
   defaultQuery() {
-    return [{
-      name: 'Show Description from Device',
-      query: `SELECT description from device\nwhere device='SEP00112233445566'`
-    }];
+    // return [{
+    //   name: 'Show Description from Device',
+    //   query: `SELECT description from device\nwhere device='SEP00112233445566'`
+    // }];
+    return [{}];
   }
 }
 
@@ -84,4 +85,9 @@ export interface IQuery {
 export interface IEditorSettings {
   vimMode:boolean;
   fontSize:number;
+}
+
+export interface ConnectionTest {
+  status:string;
+  lastTested:Date;
 }
