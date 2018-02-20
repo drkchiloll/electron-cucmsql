@@ -39,7 +39,7 @@ let dev = {
 	module: {
 		rules: [{
 			test: /\.tsx?$/,
-			loader: "ts-loader",
+			loader: "awesome-typescript-loader",
 			options: {
 				transpileOnly: false
 			}
