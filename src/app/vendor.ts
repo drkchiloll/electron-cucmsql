@@ -1,12 +1,9 @@
 // Import 3rd Parties
-// import 'bootstrap/dist/css/bootstrap.css';
 import 'font-awesome/css/font-awesome.min.css';
 // FIXED-DATA-TABLE
 import 'fixed-data-table-2/dist/fixed-data-table.min.css';
-
 // Perform Some Initialization of the API
 import { Api } from './lib/api';
-
 export declare let editorConfig;
 
 editorConfig = new Api({
@@ -25,9 +22,4 @@ editorConfig.get().then((settings:any) => {
     editorConfig.vimMode = vimMode;
     editorConfig.fontSize = fontSize;
   }
-});
-
-import * as si from 'systeminformation';
-si.system().then((info) => {
-  console.log(info.serial);
 });
