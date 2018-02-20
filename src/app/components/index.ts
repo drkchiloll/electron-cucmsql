@@ -8,6 +8,7 @@ import { CucmSql } from '../lib/cucm-sql';
 import { editorConfig } from '../vendor';
 import * as $ from 'jquery';
 import * as moment from 'moment';
+import * as fs from 'fs';
  
 import 'brace/mode/mysql';
 import 'brace/theme/monokai';
@@ -30,8 +31,7 @@ import {
 } from 'material-ui';
 
 import CsvCreator from 'react-csv-creator';
-const SelectableList = makeSelectable(List),
-      fs = require('fs');
+const SelectableList = makeSelectable(List);
 
 export {
   React, ReactDOM, brace,
