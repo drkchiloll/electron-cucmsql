@@ -1,6 +1,5 @@
 import * as React from 'react';
 import * as $ from 'jquery';
-
 import {
   Drawer, MenuItem, Dialog, FlatButton,
   BottomNavigation, BottomNavigationItem,
@@ -23,10 +22,6 @@ export class Accounts extends React.Component<any,any> {
       openSnack: false,
       acctMsg: ''
     };
-    this.handleAccountsToggle = this.handleAccountsToggle.bind(this);
-    this.changeAcctValues = this.changeAcctValues.bind(this);
-    this.save = this.save.bind(this);
-    this.testAccount = this.testAccount.bind(this);
   }
   componentWillMount() {
     let accounts;
@@ -55,20 +50,16 @@ export class Accounts extends React.Component<any,any> {
       }
     }).then((records) => {
       accounts = records;
-      console.log(accounts);
       let selectedAcct = accounts.findIndex(acct => acct.selected),
         account = accounts[selectedAcct];
       this.setState({ api, accounts, selectedAcct, account });
     });
 
   }
-  componentWillUnmount() {
-    console.log('this component dismounted');
-  }
-  handleAccountsToggle() {
+  handleAccountsToggle = () => {
     this.setState({ openAccounts: !this.state.openAccounts });
   }
-  changeAcctValues(e, val) {
+  changeAcctValues = (e, val) => {
     let { name } = e.target,
         accounts = this.state.accounts,
         selectedAcct = this.state.selectedAcct;
@@ -76,11 +67,15 @@ export class Accounts extends React.Component<any,any> {
     this.setState({ accounts });
   }
   setAccounts() {
-    return [
-      {name:'New',host:'',version:'8.5',username:'',password:''}
-    ];
+    return [{
+      name: 'New',
+      host: '',
+      version: '8.5',
+      username: '',
+      password: ''
+    }];
   }
-  save() {
+  save = () => {
     let accounts = this.state.accounts,
         account = this.state.accounts[this.state.selectedAcct],
         acctMsg:string;
@@ -100,7 +95,7 @@ export class Accounts extends React.Component<any,any> {
       });
     }
   }
-  testAccount() {
+  testAccount = () => {
     let { accounts, selectedAcct } = this.state,
       account = accounts[selectedAcct],
       { host, version, username, password } = account;
@@ -137,26 +132,26 @@ export class Accounts extends React.Component<any,any> {
         icon={<FontIcon className='fa fa-hdd-o' />}
         primary={true}
         keyboardFocused={true}
-        onTouchTap={this.save}
+        onClick={this.save}
       />,
       <FlatButton
         label='Test'
         icon={<FontIcon color={testColor} className='fa fa-plug' />}
         primary={true}
-        onTouchTap={this.testAccount}
+        onClick={this.testAccount}
       />,
       <FlatButton
         label='Close'
         icon={<FontIcon className='fa fa-window-close-o'/>}
         primary={true}
-        onTouchTap={() => {
+        onClick={() => {
           this.props.acctClose();
         }}
       />
     ];
     let accounts = this.state.accounts;
     if(!accounts || accounts.length===0) {
-      this.state.accounts = this.setAccounts();
+      accounts = this.setAccounts();
     }
     return (
       <div>
@@ -189,7 +184,7 @@ export class Accounts extends React.Component<any,any> {
                 }} >
                 <Subheader>Account List</Subheader>
                 {
-                  this.state.accounts.map((acct, i) => {
+                  accounts ? accounts.map((acct, i) => {
                     return (
                       <ListItem
                         key={`acct_${i}`}
@@ -197,7 +192,7 @@ export class Accounts extends React.Component<any,any> {
                         primaryText={acct.name}
                         rightIcon={<FontIcon color={acct.status} className='fa fa-dot-circle-o' />}/>
                     );
-                  })
+                  }) : null
                 }
               </SelectableList>
               <div>
@@ -207,7 +202,7 @@ export class Accounts extends React.Component<any,any> {
                     <BottomNavigationItem
                       label="Account"
                       icon={<FontIcon className='fa fa-user-plus'/>}
-                      onTouchTap={()=>{
+                      onClick={()=>{
                         console.log('add account');
                         let accounts = this.state.accounts;
                         accounts.push({
@@ -224,7 +219,7 @@ export class Accounts extends React.Component<any,any> {
                     <BottomNavigationItem
                       label="Remove"
                       icon={<FontIcon color='red' className='fa fa-trash'/>}
-                      onTouchTap={()=>{
+                      onClick={()=>{
                         console.log('remove touched');
                         let accounts = this.state.accounts,
                             acctIdx = this.state.selectedAcct,
@@ -259,7 +254,7 @@ export class Accounts extends React.Component<any,any> {
                 underlineShow={true}
                 floatingLabelFixed={true}
                 floatingLabelText='Account Name'
-                value={this.state.accounts[this.state.selectedAcct].name}
+                value={accounts[this.state.selectedAcct].name}
                 onChange={this.changeAcctValues}
                 errorText='' />
               <TextField
@@ -269,12 +264,12 @@ export class Accounts extends React.Component<any,any> {
                 underlineShow={true}
                 floatingLabelFixed={true}
                 floatingLabelText='CUCM Server'
-                value={this.state.accounts[this.state.selectedAcct].host}
+                value={accounts[this.state.selectedAcct].host}
                 onChange={this.changeAcctValues} />
               <Divider />
               <SelectField floatingLabelText='UCM Version'
                 style={style}
-                value={this.state.accounts[this.state.selectedAcct].version}
+                value={accounts[this.state.selectedAcct].version}
                 onChange={(e,i,val) => {
                   let accounts = this.state.accounts,
                       account = this.state.accounts[this.state.selectedAcct];
@@ -292,7 +287,7 @@ export class Accounts extends React.Component<any,any> {
                 underlineShow={true}
                 floatingLabelFixed={true}
                 floatingLabelText='UserName'
-                value={this.state.accounts[this.state.selectedAcct].username}
+                value={accounts[this.state.selectedAcct].username}
                 onChange={this.changeAcctValues} />
               <TextField
                 type='password'
@@ -302,7 +297,7 @@ export class Accounts extends React.Component<any,any> {
                 underlineShow={true}
                 floatingLabelFixed={true}
                 floatingLabelText='Password'
-                value={this.state.accounts[this.state.selectedAcct].password}
+                value={accounts[this.state.selectedAcct].password}
                 onChange={this.changeAcctValues} />
               <Divider />
             </Paper>
