@@ -40,7 +40,7 @@ export class QueryWindow extends React.Component<any,any> {
       rowHeight: 50,
       columnWidths: null,
       hrTop: 275,
-      editorHeight: 435,
+      editorHeight: 445,
       headers: [{id:'first',display: 'Generic'}],
       rowData: [{first:'generic'}],
       openSnack: false,
@@ -48,23 +48,17 @@ export class QueryWindow extends React.Component<any,any> {
       completed: 10,
       showProgress: false,
       progressBar: 'indeterminate',
-      progressValue: 100,
-      progressColor: 'green'
+      progressColor: 'green',
+      queryHeight: window.innerHeight - 90
     };
-    this._queryChange = this._queryChange.bind(this);
-    this._newQuery = this._newQuery.bind(this);
-    this._execQuery = this._execQuery.bind(this);
-    this._saveQuery = this._saveQuery.bind(this);
-    this._setEditorMode = this._setEditorMode.bind(this);
-    this._rowDblClick = this._rowDblClick.bind(this);
-    this._upload = this._upload.bind(this);
-    this._execUpdateQuery = this._execUpdateQuery.bind(this);
-    this._handleErrors = this._handleErrors.bind(this);
-    this._clear = this._clear.bind(this);
-    this._updateVmp = this._updateVmp.bind(this);
-    this._handler = this._handler.bind(this);
   }
   componentWillMount() {
+    window.onresize = () => {
+      let { drawerWidth, queryHeight } = this.state;
+      let { innerWidth, innerHeight } = window,
+        editorWidth = innerWidth - drawerWidth;
+      this.setState({ editorWidth });
+    };
     setTimeout(() => {
       let { vimMode, fontSize, recordId } = editorConfig;
       this._setEditorMode(null, vimMode);
@@ -88,13 +82,6 @@ export class QueryWindow extends React.Component<any,any> {
       this._setEditorLine(this.state.editor);
     });
   }
-  componentDidMount() {
-    window.onresize = () => {
-      let { innerWidth } = window,
-          editorWidth = innerWidth - this.state.drawerWidth;
-      this.setState({ editorWidth });
-    };
-  }
   componentWillReceiveProps(nextProps) {
     let aceFocus = nextProps.view==='mainView' ? true: false;
     this.setState({ aceFocus });
@@ -108,7 +95,7 @@ export class QueryWindow extends React.Component<any,any> {
       // editor.setOptions({ maxLines: 25 });
     },0);
   }
-  _queryChange(e, value) {
+  _queryChange = (e, value) => {
     let selectedStatement = this.state.queries[value].query,
         queryName = this.state.queries[value].name;
     this.setState({
@@ -118,7 +105,7 @@ export class QueryWindow extends React.Component<any,any> {
     });
     this._setEditorLine(this.state.editor);
   }
-  _newQuery() {
+  _newQuery = () => {
     let { selectedStatement, selectedQuery, queries } = this.state,
         current = selectedStatement,
         old = queries[selectedQuery].query;
@@ -164,7 +151,7 @@ export class QueryWindow extends React.Component<any,any> {
       return account;      
     });
   }
-  _handleErrors(message) {
+  _handleErrors = (message) => {
     return this.setState({ sqlError: true, errMessage: message });
   }
   _calculateColWidths(cols) {
@@ -176,7 +163,7 @@ export class QueryWindow extends React.Component<any,any> {
   _getCSVHeaders(cols) {
     return cols.map((col, i) => ( { id: col }));
   }
-  _handler({ handle, statement, action }) {
+  _handler = ({ handle, statement, action }) => {
     return handle[action](statement)
       .catch(err => {
         // console.log(err);
@@ -191,7 +178,7 @@ export class QueryWindow extends React.Component<any,any> {
         };
       });
   }
-  _execQuery() {
+  _execQuery = () => {
     this.setState({ showProgress: true });
     // console.log(this.state.queryName);
     this._getAccount().then((account:any) => {
@@ -238,12 +225,11 @@ export class QueryWindow extends React.Component<any,any> {
           statement: sqlStatement,
           action: 'query'
         }).then((resp) => {
-          console.log(resp);
           let { columns, rows, csvRows, errCode, errMessage } = resp;
           if (errCode) return this._handleErrors(errMessage);
           let columnWidths = this._calculateColWidths(columns);
           let rowHeight = 50;
-          if (rows[0].length === 1 && columns[0] === 'Error') rowHeight = 95;
+          if(rows[0].length === 1 && columns[0] === 'Error') rowHeight = 105;
           const HEADERS = this._getCSVHeaders(columns);
           this.setState({
             columns, rows, columnWidths, openTable: true, rowHeight, headers: HEADERS, rowData: csvRows,
@@ -260,7 +246,7 @@ export class QueryWindow extends React.Component<any,any> {
           if(errCode) return this._handleErrors(errMessage);
           let columnWidths = this._calculateColWidths(columns);
           let rowHeight = 50;
-          if(rows[0].length === 1 && columns[0] === 'Error' ) rowHeight = 95;
+          if(rows[0].length === 1 && columns[0] === 'Error' ) rowHeight = 105;
           const HEADERS = this._getCSVHeaders(columns);
           this.setState({
             columns, rows, columnWidths, openTable: true, rowHeight, headers: HEADERS, rowData: csvRows,
@@ -270,7 +256,7 @@ export class QueryWindow extends React.Component<any,any> {
       }
     });
   }
-  _saveQuery() {
+  _saveQuery = () => {
     let { selectedStatement, selectedQuery, queries, queryApi } = this.state,
         current = selectedStatement,
         old = queries[selectedQuery],
@@ -287,7 +273,7 @@ export class QueryWindow extends React.Component<any,any> {
       }
     }
   }
-  _upload() {
+  _upload = () => {
     let file = $('#csv-upload').prop('files')[0],
       csv = fs.readFileSync(file.path).toString().split('\n'),
       data = csv.shift(),
@@ -304,7 +290,7 @@ export class QueryWindow extends React.Component<any,any> {
         });
     }
   }
-  _updateVmp({ csv, sqlStatement, queryName }) {
+  _updateVmp = ({ csv, sqlStatement, queryName }) => {
     let selectedStatement = '',
         queryStatements = [];
     csv.forEach((values: any, i: number) => {
@@ -324,7 +310,7 @@ export class QueryWindow extends React.Component<any,any> {
     this.setState({ fileDialog: false });
     this._execUpdateQuery(queryStatements);
   }
-  _setEditorMode(e, checked) {
+  _setEditorMode = (e, checked) => {
     let _id = editorConfig.recordId,
         fontSize = this.state.fontSize;
     if(checked) this.state.editor.setKeyboardHandler('ace/keyboard/vim');
@@ -342,7 +328,7 @@ export class QueryWindow extends React.Component<any,any> {
     $(txtClass).toggle()
     setTimeout(() => $(`input[name="${id}"`).focus(), 0);
   }
-  _clear() {
+  _clear = () => {
     let {
       selectedQuery, rows, rowData, columns, columnWidths, updateStatements
     } = this.state;
@@ -368,20 +354,26 @@ export class QueryWindow extends React.Component<any,any> {
           }}>
           <div style={{marginLeft:20}}>
             <TextField hintText='Search' fullWidth={true} />
-            <SelectableList value={this.state.selectedQuery}
-              onChange={this._queryChange} >
-              <Subheader>Query List</Subheader>
-              {
-                this.state.queries.map((q, i) => {
-                  return (
-                    <ListItem
-                      key={`query_${i}`}
-                      value={i}
-                      primaryText={q.name}/>
-                  );
-                })
-              }
-            </SelectableList>
+            <Subheader>Query List</Subheader>
+            <Paper zDepth={0} style={{
+              marginRight: 10, maxHeight: 1024, overflow: 'auto', backgroundColor: '#d7dddd',
+              height: 'auto'
+            }}>
+              <SelectableList value={this.state.selectedQuery}
+                onChange={this._queryChange} >
+                {
+                  this.state.queries.map((q, i) => {
+                    return (
+                      <ListItem
+                        key={`query_${i}`}
+                        value={i}
+                        primaryText={q.name}
+                        onDoubleClick={() => console.log('I was doubleclicked')} />
+                    );
+                  })
+                }
+              </SelectableList>
+            </Paper>
           </div>
         </Drawer>
         <div style={{position:'fixed', left: 310}}>
@@ -449,15 +441,15 @@ export class QueryWindow extends React.Component<any,any> {
               this.setState({ editor });
             }}
             onChange={(sql) => {
-              if(this.state.editor.getSelectionRange().end.row >= 10) {
-                let row = this.state.editor.getSelectionRange().end.row + 1;
-                if(row > 20) {}
-                else  this.state.editor.setOptions({ maxLines: row });
-              } else if(this.state.editor.getSelectionRange().end.row < 10) {
-                if(this.state.editor.setOptions.maxLines) {
-                  delete this.state.editor.setOptions.maxLines;
-                }
-              }
+              // if(this.state.editor.getSelectionRange().end.row >= 20) {
+              //   let row = this.state.editor.getSelectionRange().end.row + 1;
+              //   console.log(row);
+              //   this.state.editor.setOptions({ maxLines: row });
+              // } else if(this.state.editor.getSelectionRange().end.row < 20) {
+              //   if(this.state.editor.setOptions.maxLines) {
+              //     delete this.state.editor.setOptions.maxLines;
+              //   }
+              // }
               this.setState({ selectedStatement: sql });
             }}
             className='editor'
@@ -501,7 +493,7 @@ export class QueryWindow extends React.Component<any,any> {
               $('#editorDivider').css('cursor','pointer');
             }} />
           <LinearProgress mode={this.state.progressBar}
-            color={this.state.progressColor} value={this.state.progressValue}
+            color={this.state.progressColor} value={100}
             style={{ height: 12, display: this.state.showProgress ? 'block': 'none' }} />
           <div style={{float:'right'}}>
             <Toggle
@@ -518,7 +510,7 @@ export class QueryWindow extends React.Component<any,any> {
               <CsvCreator
                 filename='export'
                 headers={this.state.headers}
-                rows={this.state.rowData}>
+                rows={this.state.rowData || []}>
                 <FlatButton
                   label="EXPORT"
                   labelPosition="before"
@@ -531,7 +523,7 @@ export class QueryWindow extends React.Component<any,any> {
               rowHeight={this.state.rowHeight}
               headerHeight={50}
               width={this.state.editorWidth}
-              height={400}
+              height={500}
               onColumnResizeEndCallback={(newWidth, columnKey) => {
                 let columnWidths = this.state.columnWidths;
                 columnWidths[columnKey] = newWidth;
@@ -613,6 +605,7 @@ export class QueryWindow extends React.Component<any,any> {
           ]} >
           <TextField hintText='Unique Name for Query'
             name='query-name'
+            autoFocus
             underlineShow={true}
             floatingLabelFixed={true}
             value={this.state.queryName}
@@ -633,7 +626,7 @@ export class QueryWindow extends React.Component<any,any> {
       </div>
     );
   }
-  _execUpdateQuery(statements) {
+  _execUpdateQuery = (statements) => {
     // console.log(statements);
     let columns, rows, csvRows, columnWidths, rowHeight, HEADERS;
     this._getAccount().then((account:any) => {
