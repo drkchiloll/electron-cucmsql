@@ -11,6 +11,8 @@ import {
   SelectableList, CsvCreator, fs
 } from './index';
 
+import * as ace from 'brace';
+
 export class QueryWindow extends React.Component<any,any> {
   constructor(props) {
     super(props);
@@ -177,6 +179,7 @@ export class QueryWindow extends React.Component<any,any> {
   _handler({ handle, statement, action }) {
     return handle[action](statement)
       .catch(err => {
+        // console.log(err);
         this.setState({
           progressBar: 'determinate',
           progressColor: 'red'
@@ -190,7 +193,7 @@ export class QueryWindow extends React.Component<any,any> {
   }
   _execQuery() {
     this.setState({ showProgress: true });
-    console.log(this.state.queryName);
+    // console.log(this.state.queryName);
     this._getAccount().then((account:any) => {
       let cucmHandler = new CucmSql(account);
       let sqlStatement = JSON.parse(
@@ -229,6 +232,24 @@ export class QueryWindow extends React.Component<any,any> {
           let columnWidths = this._calculateColWidths(columns);
           this.setState({ columns, rowData, rows, headers, columnWidths, showProgress: false });
         })
+      } else if(this.state.selectedStatement) {
+        this._handler({
+          handle: cucmHandler,
+          statement: sqlStatement,
+          action: 'query'
+        }).then((resp) => {
+          console.log(resp);
+          let { columns, rows, csvRows, errCode, errMessage } = resp;
+          if (errCode) return this._handleErrors(errMessage);
+          let columnWidths = this._calculateColWidths(columns);
+          let rowHeight = 50;
+          if (rows[0].length === 1 && columns[0] === 'Error') rowHeight = 95;
+          const HEADERS = this._getCSVHeaders(columns);
+          this.setState({
+            columns, rows, columnWidths, openTable: true, rowHeight, headers: HEADERS, rowData: csvRows,
+            showProgress: false
+          });
+        });
       } else {
         this._handler({
           handle: cucmHandler,
@@ -306,7 +327,6 @@ export class QueryWindow extends React.Component<any,any> {
   _setEditorMode(e, checked) {
     let _id = editorConfig.recordId,
         fontSize = this.state.fontSize;
-    const ace = require('brace');
     if(checked) this.state.editor.setKeyboardHandler('ace/keyboard/vim');
     else this.state.editor.setKeyboardHandler('');
     editorConfig.update({ _id, vimMode: checked, fontSize }).then((num) => {
@@ -379,8 +399,8 @@ export class QueryWindow extends React.Component<any,any> {
                 </span>
               }
               label='Execute SQL'
-              onTouchTap={this._execQuery}/>
-            {/* <BottomNavigationItem
+              onClick={this._execQuery}/>
+            <BottomNavigationItem
               className='new-query'
               icon={
                 <span className="fa-stack fa-lg">
@@ -390,15 +410,6 @@ export class QueryWindow extends React.Component<any,any> {
               }
               label='New Query'
               onClick={this._newQuery}/>
-            <BottomNavigationItem
-              className='save-query'
-              icon={
-                <span className='fa-stack fa-lg'>
-                  <i className='fa fa-hdd-o fa-stack-2x'/>
-                </span>
-              }
-              label='Save'
-              onClick={this._saveQuery}/> */}
             <BottomNavigationItem
               className='upload-csv'
               icon={
@@ -431,8 +442,7 @@ export class QueryWindow extends React.Component<any,any> {
             mode='mysql'
             theme='monokai'
             onLoad={(editor) => {
-              const ace = require('brace'),
-                    Vim = ace.acequire('ace/keyboard/vim').CodeMirror.Vim;
+              const Vim = ace.acequire('ace/keyboard/vim').CodeMirror.Vim;
               Vim.defineEx('write', 'w', (cm, input) => {
                 this._saveQuery();
               });
@@ -478,7 +488,7 @@ export class QueryWindow extends React.Component<any,any> {
             enableLiveAutocompletion={true}
             showPrintMargin={false}
             editorProps={{$blockScrolling: Infinity}}/>
-          {/* <hr id='editorDivider'
+          <hr id='editorDivider'
             style={{margin: 0, border: '2px solid #ffcccc'}}
             draggable={true}
             onMouseOver={() => $('#editorDivider').css('cursor','row-resize')}
@@ -489,7 +499,7 @@ export class QueryWindow extends React.Component<any,any> {
               let editorHeight = 200 + e.pageY - 285 + 1;
               this.setState({ editorHeight: editorHeight.toString() });
               $('#editorDivider').css('cursor','pointer');
-            }} /> */}
+            }} />
           <LinearProgress mode={this.state.progressBar}
             color={this.state.progressColor} value={this.state.progressValue}
             style={{ height: 12, display: this.state.showProgress ? 'block': 'none' }} />
@@ -572,7 +582,6 @@ export class QueryWindow extends React.Component<any,any> {
           <div style={{ display: this.state.sqlError ? 'block': 'none'}}>
             <Chip
               backgroundColor={blue300}
-              onTouchTap={()=>{}}
               style={{ margin: 20 }}
               labelStyle={{fontSize:'16px'}}>
               <Avatar size={32} color={red300} backgroundColor={indigo900} icon={<SvgIconErrorOutline />} />
@@ -587,10 +596,10 @@ export class QueryWindow extends React.Component<any,any> {
           actions={[
             <FlatButton label='Cancel'
               primary={true}
-              onTouchTap={()=> this.setState({ saveDialog: false })} />,
+              onClick={()=> this.setState({ saveDialog: false })} />,
             <FlatButton label='Save'
               primary={true}
-              onTouchTap={()=>{
+              onClick={()=>{
                 let { queries, queryApi, selectedStatement, queryName } = this.state;
                 let record = {
                   name: queryName,
@@ -598,7 +607,7 @@ export class QueryWindow extends React.Component<any,any> {
                 }
                 queryApi.add(record).then((doc) => {
                   queries.push(doc);
-                  this.setState({ queries, saveDialog: false });
+                  this.setState({ queries, saveDialog: false, selectedQuery: queries.length-1 });
                 });
               }} />
           ]} >
@@ -617,7 +626,7 @@ export class QueryWindow extends React.Component<any,any> {
           actions={[
             <FlatButton label='Cancel'
               primary={true}
-              onTouchTap={() => this.setState({ fileDialog: false })} />
+              onClick={() => this.setState({ fileDialog: false })} />
           ]} >
           <input name='myFile' type='file' id='csv-upload' onChange={this._upload.bind(this)} />
         </Dialog>
