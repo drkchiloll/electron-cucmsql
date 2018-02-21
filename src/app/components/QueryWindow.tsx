@@ -8,7 +8,7 @@ import {
   Toggle, Dialog, FlatButton, Chip, Avatar,
   indigo900, blue300, red300, SvgIconErrorOutline,
   IconButton, FontIcon, Snackbar, LinearProgress,
-  SelectableList, CsvCreator, fs
+  SelectableList, CsvCreator, fs, QueryActions
 } from './index';
 
 import * as ace from 'brace';
@@ -31,9 +31,7 @@ export class QueryWindow extends React.Component<any,any> {
       selectedQuery: 0,
       queryApi: null,
       fontSize: 14,
-      editorSettingsApi: null,
       queries: [],
-      queryResults: [],
       openTable: false,
       columns: [],
       rows: [[';D)']],
@@ -44,7 +42,6 @@ export class QueryWindow extends React.Component<any,any> {
       headers: [{id:'first',display: 'Generic'}],
       rowData: [{first:'generic'}],
       openSnack: false,
-      execMsg: '',
       completed: 10,
       showProgress: false,
       progressBar: 'indeterminate',
@@ -192,7 +189,6 @@ export class QueryWindow extends React.Component<any,any> {
           rowData = JSON.parse(JSON.stringify(this.state.rowData)),
           headers = JSON.parse(JSON.stringify(this.state.headers));
         let { updateStatements, queryStatements } = this.state;
-        let execMsg = '';
         return Promise.each(updateStatements, (statement:string, i) => {
           return this._handler({
             handle: cucmHandler,
@@ -377,59 +373,12 @@ export class QueryWindow extends React.Component<any,any> {
           </div>
         </Drawer>
         <div style={{position:'fixed', left: 310}}>
-          <BottomNavigation
-            style={{
-              backgroundColor: '#d7dddd',
-              height: 75
-            }}>
-            <BottomNavigationItem
-              icon={
-                <span className="fa-stack fa-lg">
-                  <i className="fa fa-database fa-stack-2x fa-inverse"></i>
-                  <i className="fa fa-play-circle fa-stack-1x"
-                    style={{margin: '10px 0 0 15px'}} />
-                </span>
-              }
-              label='Execute SQL'
-              onClick={this._execQuery}/>
-            <BottomNavigationItem
-              className='new-query'
-              icon={
-                <span className="fa-stack fa-lg">
-                  <i className="fa fa-square fa-stack-2x"></i>
-                  <i className="fa fa-terminal fa-stack-1x fa-inverse"></i>
-                </span>
-              }
-              label='New Query'
-              onClick={this._newQuery}/>
-            <BottomNavigationItem
-              className='upload-csv'
-              icon={
-                <span className='fa-stack fa-lg'>
-                  <i className='fa fa-cloud-upload fa-lg' />
-                </span>
-              }
-              label='Upload CSV'
-              onClick={() => this.setState({ fileDialog: true })} />
-            <BottomNavigationItem
-              className='save-query'
-              icon={
-                <span className='fa-stack fa-lg'>
-                  <i className='fa fa-hdd-o fa-stack-2x' />
-                </span>
-              }
-              label='Save Query'
-              onClick={this._saveQuery} />
-            <BottomNavigationItem
-              className='reset-query'
-              icon={
-                <span className='fa-stack fa-lg'>
-                  <i className='fa fa-refresh fa-lg' />
-                </span>
-              }
-              label='Reset Query'
-              onClick={this._clear} />
-          </BottomNavigation>
+          <QueryActions
+            save={this._saveQuery}
+            newQuery={this._newQuery}
+            showFile={() => this.setState({ fileDialog: true})}
+            exec={this._execQuery}
+            clear={this._clear} />
           <AceEditor
             mode='mysql'
             theme='monokai'

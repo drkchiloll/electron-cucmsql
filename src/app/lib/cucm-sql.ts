@@ -23,7 +23,7 @@ export class CucmSql {
   }
 
   parseResp(data:string) {
-    // console.log(data);
+    console.log(data);
     const doc = new dom().parseFromString(data);
     let rows = Array.from(doc.getElementsByTagName('row'));
     if(rows && rows.length === 0) {
@@ -41,12 +41,11 @@ export class CucmSql {
   }
 
   parseErrorResp(data:any) {
-    console.log(data);
     if(data.statusCode === 599) {
       return new Promise((resolve, reject) => {
         resolve({ error: 'AXL Version Error' });
       });
-    } else if(data || data.error) {
+    } else if(data && data.error) {
       return new Promise((resolve, reject) => reject(data));
     }
     const doc = new dom().parseFromString(data.body);
