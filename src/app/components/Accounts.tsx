@@ -111,6 +111,10 @@ export class Accounts extends React.Component<any,any> {
         account['status'] = 'red';
         return this.state.api.update(account);
       }
+    }, (err) => {
+      alert('Test Failed');
+      account['status'] = 'red';
+      return this.state.api.update(account);
     }).then(() => {
       this.state.api.get({ _id: account._id }).then((record) => {
         account = record[0];
