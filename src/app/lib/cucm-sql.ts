@@ -46,7 +46,7 @@ export class CucmSql {
       return new Promise((resolve, reject) => {
         resolve({ error: 'AXL Version Error' });
       });
-    } else if(data && data.error) {
+    } else if(data || data.error) {
       return new Promise((resolve, reject) => reject(data));
     }
     const doc = new dom().parseFromString(data.body);
