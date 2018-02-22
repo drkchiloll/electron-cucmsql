@@ -44,4 +44,33 @@ export class Utils {
       `where n.dnorpattern='${dn}' AND rp.name='${partition}'`
     );
   }
+
+  static cleanState(state: any) {
+    const columns = JSON.parse(JSON.stringify(state.columns)),
+      rows = JSON.parse(JSON.stringify(state.rows)),
+      rowData = JSON.parse(JSON.stringify(state.rowData)),
+      headers = JSON.parse(JSON.stringify(state.headers)),
+      updateStatements = JSON.parse(JSON.stringify(state.updateStatements)),
+      queryStatements = JSON.parse(JSON.stringify(state.queryStatements));
+    return {columns, rows, rowData, headers, updateStatements, queryStatements};
+  } 
+
+  static handleCucmResp(resp: any) {
+    const { columns, rows, csvRows, errCode, errMessage } = resp;
+    if(errCode) return { sqlError: true, errMessage };
+    let columnWidths = this.colWidth(columns),
+        rowHeight = 50;
+    if(rows[0].length === 1 && columns[0] === 'Error') rowHeight = 105;
+    const headers = this.csvHeaders(columns);
+    return {
+      columns,
+      rows,
+      columnWidths,
+      openTable: true,
+      rowHeight,
+      headers,
+      rowData: csvRows,
+      showProgress: false
+    };
+  }
 }

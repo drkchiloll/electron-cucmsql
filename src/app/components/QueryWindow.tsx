@@ -154,33 +154,31 @@ export class QueryWindow extends React.Component<any,any> {
         JSON.stringify(this.state.selectedStatement)
       );
       if(this.state.updateStatements) {
-        let columns = JSON.parse(JSON.stringify(this.state.columns)),
-          rows = JSON.parse(JSON.stringify(this.state.rows)),
-          rowData = JSON.parse(JSON.stringify(this.state.rowData)),
-          headers = JSON.parse(JSON.stringify(this.state.headers));
-        let { updateStatements, queryStatements } = this.state;
+        let {
+          columns, rows, rowData, headers, updateStatements, queryStatements
+        } = Utils.cleanState(this.state);
         return Promise.each(updateStatements, (statement:string, i) => {
           return this._handler({
             handle: cucmHandler,
             statement,
             action: 'update'
           })
-            .then((res:any) =>
-              this._handler({
-                handle: cucmHandler,
-                statement: queryStatements[i],
-                action: 'query'
-              }))
-            .then((resp:any) => {
-              if(i === 0) {
-                columns.push('New VM Profile');
-                headers.push({ id: 'New VM Profile' });
-                rows[4] = [];
-              }
-              if(!rows[4]) rows[4] = [];
-              rows[4].push({ 'New VM Profile': resp.rows[2][0].vmprofile });
-              if(rowData && rowData[i]) rowData[i]['New VM Profile'] = resp.rows[2][0].vmprofile;
-            });
+          .then((res:any) =>
+            this._handler({
+              handle: cucmHandler,
+              statement: queryStatements[i],
+              action: 'query'
+            }))
+          .then((resp:any) => {
+            if(i === 0) {
+              columns.push('New VM Profile');
+              headers.push({ id: 'New VM Profile' });
+              rows[4] = [];
+            }
+            if(!rows[4]) rows[4] = [];
+            rows[4].push({ 'New VM Profile': resp.rows[2][0].vmprofile });
+            if(rowData && rowData[i]) rowData[i]['New VM Profile'] = resp.rows[2][0].vmprofile;
+          });
         }).then(() => {
           let columnWidths = Utils.colWidth(columns);
           this.setState({ columns, rowData, rows, headers, columnWidths, showProgress: false });
@@ -190,35 +188,7 @@ export class QueryWindow extends React.Component<any,any> {
           handle: cucmHandler,
           statement: sqlStatement,
           action: 'query'
-        }).then((resp) => {
-          let { columns, rows, csvRows, errCode, errMessage } = resp;
-          if (errCode) return this._handleErrors(errMessage);
-          let columnWidths = Utils.colWidth(columns);
-          let rowHeight = 50;
-          if(rows[0].length === 1 && columns[0] === 'Error') rowHeight = 105;
-          const HEADERS = Utils.csvHeaders(columns);
-          this.setState({
-            columns, rows, columnWidths, openTable: true, rowHeight, headers: HEADERS, rowData: csvRows,
-            showProgress: false
-          });
-        });
-      } else {
-        this._handler({
-          handle: cucmHandler,
-          statement: sqlStatement,
-          action: 'query'
-        }).then((resp:any) => {
-          let { columns, rows, csvRows, errCode, errMessage } = resp;
-          if(errCode) return this._handleErrors(errMessage);
-          let columnWidths = Utils.colWidth(columns);
-          let rowHeight = 50;
-          if(rows[0].length === 1 && columns[0] === 'Error' ) rowHeight = 105;
-          const HEADERS = Utils.csvHeaders(columns);
-          this.setState({
-            columns, rows, columnWidths, openTable: true, rowHeight, headers: HEADERS, rowData: csvRows,
-            showProgress: false
-          });
-        });
+        }).then((resp) => this.setState({ ...Utils.handleCucmResp(resp) }))
       }
     });
   }
