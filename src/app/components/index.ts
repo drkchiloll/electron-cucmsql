@@ -17,7 +17,7 @@ import 'brace/keybinding/vim';
 import { Table, Column, Cell } from 'fixed-data-table-2';
 
 import {
-  indigo900, blue300, red300
+  indigo900, blue300, red300, indigo50
 } from 'material-ui/styles/colors';
 
 import SvgIconErrorOutline from 'material-ui/svg-icons/alert/error-outline';
@@ -43,7 +43,7 @@ export {
   Toggle, Dialog, FlatButton, Chip, Avatar,
   indigo900, blue300, red300, SvgIconErrorOutline,
   IconButton, FontIcon, Snackbar, LinearProgress,
-  CsvCreator, SelectableList, fs, moment
+  CsvCreator, SelectableList, fs, moment, indigo50
 };
 
 // Component Exports
@@ -51,3 +51,5 @@ export { App } from './App';
 export { Accounts } from './Accounts';
 export { StateLess } from './StateLess';
 export { QueryWindow } from './QueryWindow';
+export { QueryActions } from './QueryActions';
+export { CsvUpload } from './CsvUpload';

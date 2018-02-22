@@ -8,7 +8,8 @@ import {
   Toggle, Dialog, FlatButton, Chip, Avatar,
   indigo900, blue300, red300, SvgIconErrorOutline,
   IconButton, FontIcon, Snackbar, LinearProgress,
-  SelectableList, CsvCreator, fs, QueryActions
+  SelectableList, CsvCreator, fs, QueryActions,
+  CsvUpload
 } from './index';
 
 import * as ace from 'brace';
@@ -113,30 +114,6 @@ export class QueryWindow extends React.Component<any,any> {
     selectedQuery = queries.length + 1;
     this.setState({ selectedStatement, selectedQuery });
     this.state.editor.focus();
-  }
-  helpProp(num:number) {
-    switch(num) {
-      case 1: return 'first';
-      case 2: return 'second';
-      case 3: return 'third';
-      case 4: return 'fourth';
-      case 5: return 'fifth';
-      case 6: return 'sixth';
-      case 7: return 'seventh';
-      case 8: return 'eighth';
-      case 9: return 'ninth';
-      case 10: return 'tenth';
-      case 11: return 'eleventh';
-      case 12: return 'twelveth';
-      case 13: return 'thirteenth';
-      case 14: return 'fourteenth';
-      case 15: return 'fifthteenth';
-      case 16: return 'sixteenth';
-      case 17: return 'seventeenth';
-      case 18: return 'eighteenth';
-      case 19: return 'nineteenth';
-      case 20: return 'twentieth';
-    }
   }
   _getAccount() {
     let dbApi = new Api({ db: 'acctDb', dbName: 'accounts' });
@@ -430,12 +407,11 @@ export class QueryWindow extends React.Component<any,any> {
             showPrintMargin={false}
             editorProps={{$blockScrolling: Infinity}}/>
           <hr id='editorDivider'
-            style={{margin: 0, border: '2px solid #ffcccc'}}
+            style={{ margin: 0, border: `3px solid ${indigo900}`}}
             draggable={true}
             onMouseOver={() => $('#editorDivider').css('cursor','row-resize')}
             onMouseOut={()=>$('#editorDivider').css('cursor','row-resize')}
             onDragEnd={(e) => {
-               console.log(this.state.editor.getSelectionRange());
               if(e.pageY == 0) return;
               let editorHeight = 200 + e.pageY - 285 + 1;
               this.setState({ editorHeight: editorHeight.toString() });
@@ -561,17 +537,13 @@ export class QueryWindow extends React.Component<any,any> {
             onChange={(e, value)=> this.setState({ queryName: value })}
             errorText='' />
         </Dialog>
-        <Dialog open={this.state.fileDialog}
-          title='Upload File'
-          modal={true}
-          style={{ width: 600, margin: '25px 0 0 25%', top: -250 }}
-          actions={[
-            <FlatButton label='Cancel'
-              primary={true}
-              onClick={() => this.setState({ fileDialog: false })} />
-          ]} >
-          <input name='myFile' type='file' id='csv-upload' onChange={this._upload.bind(this)} />
-        </Dialog>
+        {
+          this.state.fileDialog ?
+            <CsvUpload
+              close={() => this.setState({ fileDialog: false })}
+              upload={this._upload} /> :
+            null
+        }
       </div>
     );
   }
