@@ -383,15 +383,15 @@ export class QueryWindow extends React.Component<any,any> {
               this.setState({ editor });
             }}
             onChange={(sql) => {
-              // if(this.state.editor.getSelectionRange().end.row >= 20) {
-              //   let row = this.state.editor.getSelectionRange().end.row + 1;
-              //   console.log(row);
-              //   this.state.editor.setOptions({ maxLines: row });
-              // } else if(this.state.editor.getSelectionRange().end.row < 20) {
-              //   if(this.state.editor.setOptions.maxLines) {
-              //     delete this.state.editor.setOptions.maxLines;
-              //   }
-              // }
+              if(this.state.editor.getSelectionRange().end.row >= 23) {
+                let row = this.state.editor.getSelectionRange().end.row + 1;
+                console.log(row);
+                this.state.editor.setOptions({ maxLines: row });
+              } else if(this.state.editor.getSelectionRange().end.row < 23) {
+                if(this.state.editor.setOptions.maxLines) {
+                  delete this.state.editor.setOptions.maxLines;
+                }
+              }
               this.setState({ selectedStatement: sql });
             }}
             className='editor'
