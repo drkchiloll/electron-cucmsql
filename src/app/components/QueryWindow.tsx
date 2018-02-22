@@ -9,7 +9,7 @@ import {
   indigo900, blue300, red300, SvgIconErrorOutline,
   IconButton, FontIcon, Snackbar, LinearProgress,
   SelectableList, CsvCreator, fs, QueryActions,
-  CsvUploadPopup, SaveQueryPopup
+  CsvUploadPopup, SaveQueryPopup, EditorResizer
 } from './index';
 
 import * as ace from 'brace';
@@ -334,7 +334,7 @@ export class QueryWindow extends React.Component<any,any> {
     });
   }
   render() {
-    let aceFocus = this.state.aceFocus;
+    let { queryName, fileDialog, saveDialog, aceFocus } = this.state;
     return (
       <div>
         <Drawer open={true} width={this.state.drawerWidth}
@@ -422,17 +422,9 @@ export class QueryWindow extends React.Component<any,any> {
             enableLiveAutocompletion={true}
             showPrintMargin={false}
             editorProps={{$blockScrolling: Infinity}}/>
-          <hr id='editorDivider'
-            style={{ margin: 0, border: `3px solid ${indigo900}`}}
-            draggable={true}
-            onMouseOver={() => $('#editorDivider').css('cursor','row-resize')}
-            onMouseOut={()=>$('#editorDivider').css('cursor','row-resize')}
-            onDragEnd={(e) => {
-              if(e.pageY == 0) return;
-              let editorHeight = 200 + e.pageY - 285 + 1;
-              this.setState({ editorHeight: editorHeight.toString() });
-              $('#editorDivider').css('cursor','pointer');
-            }} />
+          <EditorResizer changeHeight={
+            (editorHeight) => this.setState({ editorHeight })
+          } />
           <LinearProgress mode={this.state.progressBar}
             color={this.state.progressColor} value={100}
             style={{ height: 12, display: this.state.showProgress ? 'block': 'none' }} />
@@ -523,13 +515,13 @@ export class QueryWindow extends React.Component<any,any> {
           </div>
         </div>
         {
-          this.state.fileDialog ?
+          fileDialog ?
             <CsvUploadPopup
               close={() => this.setState({ fileDialog: false })}
               upload={this._upload} /> :
-          this.state.saveDialog ?
+          saveDialog ?
             <SaveQueryPopup
-              queryName={this.state.queryName}
+              queryName={queryName}
               save={this._saveNewQuery}
               change={(val) => this.setState({ queryName: val })} /> :
             null
