@@ -55,3 +55,4 @@ export { QueryActions } from './QueryActions';
 export { CsvUploadPopup } from './CsvUploadPopup';
 export { SaveQueryPopup } from './SaveQueryPopup';
 export { EditorResizer } from './EditorResizer';
+export { Editor } from './Editor';

@@ -9,10 +9,9 @@ import {
   indigo900, blue300, red300, SvgIconErrorOutline,
   IconButton, FontIcon, Snackbar, LinearProgress,
   SelectableList, CsvCreator, fs, QueryActions,
-  CsvUploadPopup, SaveQueryPopup, EditorResizer
+  CsvUploadPopup, SaveQueryPopup, EditorResizer,
+  Editor
 } from './index';
-
-import * as ace from 'brace';
 
 export class QueryWindow extends React.Component<any,any> {
   constructor(props) {
@@ -372,56 +371,11 @@ export class QueryWindow extends React.Component<any,any> {
             showFile={() => this.setState({ fileDialog: true})}
             exec={this._execQuery}
             clear={this._clear} />
-          <AceEditor
-            mode='mysql'
-            theme='monokai'
-            onLoad={(editor) => {
-              const Vim = ace.acequire('ace/keyboard/vim').CodeMirror.Vim;
-              Vim.defineEx('write', 'w', (cm, input) => {
-                this._saveQuery();
-              });
-              this.setState({ editor });
-            }}
-            onChange={(sql) => {
-              if(this.state.editor.getSelectionRange().end.row >= 23) {
-                let row = this.state.editor.getSelectionRange().end.row + 1;
-                console.log(row);
-                this.state.editor.setOptions({ maxLines: row });
-              } else if(this.state.editor.getSelectionRange().end.row < 23) {
-                if(this.state.editor.setOptions.maxLines) {
-                  delete this.state.editor.setOptions.maxLines;
-                }
-              }
-              this.setState({ selectedStatement: sql });
-            }}
-            className='editor'
-            focus={aceFocus}
-            commands={[{
-              name:'save',
-              bindKey: {
-                win: 'Ctrl-S', mac: 'Command-S'
-              },
-              exec: function() {
-                $('.save-query').get(0).click();
-              }
-            }, {
-              name:'new-query',
-              bindKey: { win: 'Ctrl-N', mac: 'Command-N' },
-              exec: function() {
-                $('.new-query').get(0).click();
-              }
-            }]}
-            name='editor'
-            width={`${this.state.editorWidth}px`}
-            height={`${this.state.editorHeight}px`}
-            tabSize={2}
-            fontSize={this.state.fontSize}
-            highlightActiveLine={false}
-            value={this.state.selectedStatement}
-            enableBasicAutocompletion={true}
-            enableLiveAutocompletion={true}
-            showPrintMargin={false}
-            editorProps={{$blockScrolling: Infinity}}/>
+          <Editor 
+            init={(editor) => this.setState({ editor })}
+            change={(selectedStatement) =>
+              this.setState({ selectedStatement })}
+            { ...this.state } />
           <EditorResizer changeHeight={
             (editorHeight) => this.setState({ editorHeight })
           } />
