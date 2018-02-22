@@ -9,7 +9,7 @@ import {
   indigo900, blue300, red300, SvgIconErrorOutline,
   IconButton, FontIcon, Snackbar, LinearProgress,
   SelectableList, CsvCreator, fs, QueryActions,
-  CsvUpload, SaveQueryPopup
+  CsvUploadPopup, SaveQueryPopup
 } from './index';
 
 import * as ace from 'brace';
@@ -524,7 +524,7 @@ export class QueryWindow extends React.Component<any,any> {
         </div>
         {
           this.state.fileDialog ?
-            <CsvUpload
+            <CsvUploadPopup
               close={() => this.setState({ fileDialog: false })}
               upload={this._upload} /> :
           this.state.saveDialog ?

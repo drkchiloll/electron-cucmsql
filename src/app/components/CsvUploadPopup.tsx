@@ -9,7 +9,7 @@ const styles: any = {
   }
 };
 
-export function CsvUpload(props: any) {
+export function CsvUploadPopup(props: any) {
   return (
     <Dialog open={true}
       title='Upload File'
