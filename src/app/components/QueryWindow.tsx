@@ -127,9 +127,6 @@ export class QueryWindow extends React.Component<any,any> {
       return account;
     });
   }
-  _handleErrors = (message) => {
-    return this.setState({ sqlError: true, errMessage: message });
-  }
   _handler = ({ handle, statement, action }) => {
     return handle[action](statement)
       .catch(err => {
