@@ -13,6 +13,8 @@ import {
   Editor
 } from './index';
 
+import { Utils } from '../lib/utils';
+
 export class QueryWindow extends React.Component<any,any> {
   constructor(props) {
     super(props);
@@ -60,7 +62,8 @@ export class QueryWindow extends React.Component<any,any> {
       let { vimMode, fontSize, recordId } = editorConfig;
       this._setEditorMode(null, vimMode);
       this.setState({ fontSize });
-    }, 800)
+    }, 800);
+    
     let queryApi = new Api({ db: 'queryDb', dbName: 'cucm-query' }),
         selectedQuery = this.state.selectedQuery,
         selectedStatement, aceFocus;
@@ -121,20 +124,11 @@ export class QueryWindow extends React.Component<any,any> {
       delete account._id;
       delete account.name;
       delete account.selected;
-      return account;      
+      return account;
     });
   }
   _handleErrors = (message) => {
     return this.setState({ sqlError: true, errMessage: message });
-  }
-  _calculateColWidths(cols) {
-    return cols.reduce((o, col) => {
-      o[col] = 200;
-      return o;
-    }, {});
-  }
-  _getCSVHeaders(cols) {
-    return cols.map((col, i) => ( { id: col }));
   }
   _handler = ({ handle, statement, action }) => {
     return handle[action](statement)
@@ -188,7 +182,7 @@ export class QueryWindow extends React.Component<any,any> {
               if(rowData && rowData[i]) rowData[i]['New VM Profile'] = resp.rows[2][0].vmprofile;
             });
         }).then(() => {
-          let columnWidths = this._calculateColWidths(columns);
+          let columnWidths = Utils.colWidth(columns);
           this.setState({ columns, rowData, rows, headers, columnWidths, showProgress: false });
         })
       } else if(this.state.selectedStatement) {
@@ -199,10 +193,10 @@ export class QueryWindow extends React.Component<any,any> {
         }).then((resp) => {
           let { columns, rows, csvRows, errCode, errMessage } = resp;
           if (errCode) return this._handleErrors(errMessage);
-          let columnWidths = this._calculateColWidths(columns);
+          let columnWidths = Utils.colWidth(columns);
           let rowHeight = 50;
           if(rows[0].length === 1 && columns[0] === 'Error') rowHeight = 105;
-          const HEADERS = this._getCSVHeaders(columns);
+          const HEADERS = Utils.csvHeaders(columns);
           this.setState({
             columns, rows, columnWidths, openTable: true, rowHeight, headers: HEADERS, rowData: csvRows,
             showProgress: false
@@ -216,10 +210,10 @@ export class QueryWindow extends React.Component<any,any> {
         }).then((resp:any) => {
           let { columns, rows, csvRows, errCode, errMessage } = resp;
           if(errCode) return this._handleErrors(errMessage);
-          let columnWidths = this._calculateColWidths(columns);
+          let columnWidths = Utils.colWidth(columns);
           let rowHeight = 50;
           if(rows[0].length === 1 && columns[0] === 'Error' ) rowHeight = 105;
-          const HEADERS = this._getCSVHeaders(columns);
+          const HEADERS = Utils.csvHeaders(columns);
           this.setState({
             columns, rows, columnWidths, openTable: true, rowHeight, headers: HEADERS, rowData: csvRows,
             showProgress: false
@@ -279,24 +273,18 @@ export class QueryWindow extends React.Component<any,any> {
     }
   }
   _updateVmp = ({ csv, sqlStatement, queryName }) => {
-    let selectedStatement = '',
-        queryStatements = [];
-    csv.forEach((values: any, i: number) => {
-      let v = values.split(','),
-        dn = v[0].replace('\r', ''),
-        rp = v[1].replace('\r', ''),
-        vmp = v[2].replace('\r', '');
-      if(i + 1 === csv.length) {
-        selectedStatement += sqlStatement.replace('%1', vmp).replace('%2', rp).replace('%3', dn) + '\n';
-      } else {
-        selectedStatement += sqlStatement.replace('%1', vmp).replace('%2', rp).replace('%3', dn) + '\r\r';
-      }
-      queryStatements.push(this.initDeviceStatement({ dn, partition: rp }));
+    Utils.statements({
+      csv, statement: sqlStatement
+    }).then(({queryStatements, selectedStatement }) => {
+      this.setState({
+        selectedStatement,
+        updateStatements: selectedStatement.split('\r\r'),
+        queryStatements,
+        fileDialog: false
+      });
+      this._setEditorLine(this.state.editor);
+      this._execUpdateQuery(queryStatements);
     });
-    this.setState({ selectedStatement, updateStatements: selectedStatement.split('\r\r'), queryStatements });
-    this._setEditorLine(this.state.editor);
-    this.setState({ fileDialog: false });
-    this._execUpdateQuery(queryStatements);
   }
   _setEditorMode = (e, checked) => {
     let _id = editorConfig.recordId,
@@ -332,6 +320,42 @@ export class QueryWindow extends React.Component<any,any> {
       });
     });
   }
+  _execUpdateQuery = (statements) => {
+    // console.log(statements);
+    let columns, rows, csvRows, columnWidths, rowHeight, HEADERS;
+    this._getAccount().then((account: any) => {
+      let cucmHandler = new CucmSql(account);
+      Promise.each(statements, (statement: any, i: number) => {
+        return cucmHandler.query(statement).then((resp: any) => {
+          if(i === 0) {
+            columns = resp.columns;
+            HEADERS = columns.map((col: any, i) => ({ id: col }));
+            columnWidths = columns.reduce((o, col) => {
+              o[col] = 200;
+              return o;
+            }, {});
+            rowHeight = 50;
+            rows = resp.rows;
+            csvRows = resp.csvRows;
+          } else {
+            if(resp.rows) {
+              resp.rows.forEach((rs, i) => {
+                rows[i].push(rs[0]);
+              });
+              if(csvRows) csvRows = csvRows.concat(resp.csvRows);
+            }
+          }
+        })
+      }).then(() => {
+        this.setState({
+          columns, rows, columnWidths, openTable: true,
+          rowHeight, headers: HEADERS, rowData: csvRows,
+          showProgress: false
+        });
+      })
+    });
+  }
+
   render() {
     let { queryName, fileDialog, saveDialog, aceFocus } = this.state;
     return (
@@ -481,52 +505,6 @@ export class QueryWindow extends React.Component<any,any> {
             null
         }
       </div>
-    );
-  }
-  _execUpdateQuery = (statements) => {
-    // console.log(statements);
-    let columns, rows, csvRows, columnWidths, rowHeight, HEADERS;
-    this._getAccount().then((account:any) => {
-      let cucmHandler = new CucmSql(account);
-      Promise.each(statements, (statement:any, i:number) => {
-        return cucmHandler.query(statement).then((resp:any) => {
-          if(i===0) {
-            columns = resp.columns;
-            HEADERS = columns.map((col: any, i) => ({ id: col }));
-            columnWidths = columns.reduce((o, col) => {
-              o[col] = 200;
-              return o;
-            }, {});
-            rowHeight = 50;
-            rows = resp.rows;
-            csvRows = resp.csvRows;
-          } else {
-            if(resp.rows) {
-              resp.rows.forEach((rs, i) => {
-                rows[i].push(rs[0]);
-              });
-              if(csvRows) csvRows = csvRows.concat(resp.csvRows);
-            }
-          }
-        })
-      }).then(() => {
-        this.setState({
-          columns, rows, columnWidths, openTable: true,
-          rowHeight, headers: HEADERS, rowData: csvRows,
-          showProgress: false
-        });
-      })
-    });
-  }
-  initDeviceStatement(params) {
-    return (
-      `SELECT d.name, n.dnorpattern as dn, vmp.name as vmprofile, rp.name as partition\n` +
-      `from device d\n` +
-      `inner join devicenumplanmap as dmap on dmap.fkdevice = d.pkid\n` +
-      `inner join numplan as n on dmap.fknumplan = n.pkid\n` +
-      `inner join routepartition as rp on n.fkroutepartition = rp.pkid\n` +
-      `inner join voicemessagingprofile as vmp on n.fkvoicemessagingprofile = vmp.pkid\n` +
-      `where n.dnorpattern='${params.dn}' and rp.name='${params.partition}'`
     );
   }
 }
