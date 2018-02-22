@@ -53,3 +53,4 @@ export { StateLess } from './StateLess';
 export { QueryWindow } from './QueryWindow';
 export { QueryActions } from './QueryActions';
 export { CsvUpload } from './CsvUpload';
+export { SaveQueryPopup } from './SaveQueryPopup';

@@ -9,7 +9,7 @@ import {
   indigo900, blue300, red300, SvgIconErrorOutline,
   IconButton, FontIcon, Snackbar, LinearProgress,
   SelectableList, CsvCreator, fs, QueryActions,
-  CsvUpload
+  CsvUpload, SaveQueryPopup
 } from './index';
 
 import * as ace from 'brace';
@@ -235,7 +235,7 @@ export class QueryWindow extends React.Component<any,any> {
         old = queries[selectedQuery],
         oldQuery;
     if(!old) {
-      return this.setState({ saveDialog: true });
+      return this.setState({ saveDialog: true, queryName: '' });
     } else {
       oldQuery = old.query;
       if(current !== oldQuery) {
@@ -245,6 +245,22 @@ export class QueryWindow extends React.Component<any,any> {
         queryApi.update(queries[selectedQuery]);
       }
     }
+  }
+  _saveNewQuery = () => {
+    let {
+      queries, queryApi, selectedStatement, queryName
+    } = this.state;
+    let record = {
+      name: queryName, query: selectedStatement
+    };
+    queryApi.add(record).then(doc => {
+      queries.push(doc);
+      this.setState({
+        queries,
+        saveDialog: false,
+        selectedQuery: queries.length - 1
+      });
+    });
   }
   _upload = () => {
     let file = $('#csv-upload').prop('files')[0],
@@ -506,42 +522,16 @@ export class QueryWindow extends React.Component<any,any> {
             </Chip>
           </div>
         </div>
-        <Dialog open={this.state.saveDialog}
-          title='Save Query'
-          modal={true}
-          style={{width:600, margin :'25px 0 0 25%', top: -250}}
-          actions={[
-            <FlatButton label='Cancel'
-              primary={true}
-              onClick={()=> this.setState({ saveDialog: false })} />,
-            <FlatButton label='Save'
-              primary={true}
-              onClick={()=>{
-                let { queries, queryApi, selectedStatement, queryName } = this.state;
-                let record = {
-                  name: queryName,
-                  query: selectedStatement
-                }
-                queryApi.add(record).then((doc) => {
-                  queries.push(doc);
-                  this.setState({ queries, saveDialog: false, selectedQuery: queries.length-1 });
-                });
-              }} />
-          ]} >
-          <TextField hintText='Unique Name for Query'
-            name='query-name'
-            autoFocus
-            underlineShow={true}
-            floatingLabelFixed={true}
-            value={this.state.queryName}
-            onChange={(e, value)=> this.setState({ queryName: value })}
-            errorText='' />
-        </Dialog>
         {
           this.state.fileDialog ?
             <CsvUpload
               close={() => this.setState({ fileDialog: false })}
               upload={this._upload} /> :
+          this.state.saveDialog ?
+            <SaveQueryPopup
+              queryName={this.state.queryName}
+              save={this._saveNewQuery}
+              change={(val) => this.setState({ queryName: val })} /> :
             null
         }
       </div>
