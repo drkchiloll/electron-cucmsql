@@ -21,7 +21,7 @@ export class QueryResultTable extends React.Component<any, any> {
         headerHeight={50}
         width={editorWidth}
         height={500}
-        onColumnResizeCallback={(width, colKey) => {
+        onColumnResizeEndCallback={(width, colKey) => {
           columnWidths[colKey] = width;
           this.props.resizeColumn(columnWidths);
         }}
@@ -35,6 +35,7 @@ export class QueryResultTable extends React.Component<any, any> {
                 key={`${col}_${i}`}
                 columnKey={col}
                 header={col}
+                isResizable={true}
                 width={columnWidths[col]}
                 cell={({rowIndex, width, height}) => {
                   return (
