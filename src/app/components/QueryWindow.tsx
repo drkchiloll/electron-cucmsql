@@ -10,7 +10,7 @@ import {
   IconButton, FontIcon, Snackbar, LinearProgress,
   SelectableList, CsvCreator, fs, QueryActions,
   CsvUploadPopup, SaveQueryPopup, EditorResizer,
-  Editor
+  Editor, Queries
 } from './index';
 
 import { Utils } from '../lib/utils';
@@ -324,7 +324,9 @@ export class QueryWindow extends React.Component<any,any> {
   }
 
   render() {
-    let { queryName, fileDialog, saveDialog, aceFocus } = this.state;
+    let {
+      queryName, fileDialog, saveDialog, aceFocus, queries, selectedQuery
+    } = this.state;
     return (
       <div>
         <Drawer open={true} width={this.state.drawerWidth}
@@ -332,27 +334,12 @@ export class QueryWindow extends React.Component<any,any> {
             marginTop:80, backgroundColor: '#d7dddd'
           }}>
           <div style={{marginLeft:20}}>
-            <TextField hintText='Search' fullWidth={true} />
+            {/* <TextField hintText='Search' fullWidth={true} /> */}
             <Subheader>Query List</Subheader>
-            <Paper zDepth={0} style={{
-              marginRight: 10, maxHeight: 1024, overflow: 'auto', backgroundColor: '#d7dddd',
-              height: 'auto'
-            }}>
-              <SelectableList value={this.state.selectedQuery}
-                onChange={this._queryChange} >
-                {
-                  this.state.queries.map((q, i) => {
-                    return (
-                      <ListItem
-                        key={`query_${i}`}
-                        value={i}
-                        primaryText={q.name}
-                        onDoubleClick={() => console.log('I was doubleclicked')} />
-                    );
-                  })
-                }
-              </SelectableList>
-            </Paper>
+            <Queries
+              queries={queries}
+              change={this._queryChange}
+              selectedQuery={selectedQuery} />
           </div>
         </Drawer>
         <div style={{position:'fixed', left: 310}}>
