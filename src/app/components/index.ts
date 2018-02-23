@@ -59,3 +59,4 @@ export { Queries } from './Queries';
 export { VimToggle } from './VimToggle';
 export { ExportCsvButton } from './ExportCsvButton';
 export { QueryResultTable } from './QueryResultTable';
+export { QuerySidePanel } from './QuerySidePanel';

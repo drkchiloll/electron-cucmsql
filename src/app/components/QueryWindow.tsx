@@ -11,7 +11,7 @@ import {
   SelectableList, CsvCreator, fs, QueryActions,
   CsvUploadPopup, SaveQueryPopup, EditorResizer,
   Editor, Queries, VimToggle, ExportCsvButton,
-  QueryResultTable
+  QueryResultTable, QuerySidePanel
 } from './index';
 
 import { Utils } from '../lib/utils';
@@ -317,23 +317,28 @@ export class QueryWindow extends React.Component<any,any> {
     let {
       queryName, fileDialog, saveDialog,
       aceFocus, queries, selectedQuery, openTable,
-      fontSize, editor
+      fontSize, editor, drawerWidth
     } = this.state;
     return (
       <div>
-        <Drawer open={true} width={this.state.drawerWidth}
+        <QuerySidePanel 
+          drawerWidth={drawerWidth}
+          queries={queries}
+          change={this._queryChange}
+          selectedQuery={selectedQuery} />
+        {/* <Drawer open={true} width={drawerWidth}
           containerStyle={{
             marginTop:80, backgroundColor: '#d7dddd'
           }}>
           <div style={{marginLeft:20}}>
-            {/* <TextField hintText='Search' fullWidth={true} /> */}
+            <TextField hintText='Search' fullWidth={true} />
             <Subheader>Query List</Subheader>
             <Queries
               queries={queries}
               change={this._queryChange}
               selectedQuery={selectedQuery} />
           </div>
-        </Drawer>
+        </Drawer> */}
         <div style={{position:'fixed', left: 310}}>
           <QueryActions
             save={this._saveQuery}
