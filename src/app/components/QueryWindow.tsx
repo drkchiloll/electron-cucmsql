@@ -365,18 +365,6 @@ export class QueryWindow extends React.Component<any,any> {
             <ExportCsvButton 
               headers={this.state.headers}
               rows={this.state.rowData || []} />
-            {/* <div style={{width:50}}>
-              <CsvCreator
-                filename='export'
-                headers={this.state.headers}
-                rows={this.state.rowData || []}>
-                <FlatButton
-                  label="EXPORT"
-                  labelPosition="before"
-                  primary={true}
-                  icon={<FontIcon color='blue' className='fa fa-external-link' style={{fontSize: 18, top: 2}} />} />
-              </CsvCreator>
-            </div> */}
             <Table
               rowsCount={this.state.rows[0].length}
               rowHeight={this.state.rowHeight}
