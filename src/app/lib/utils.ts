@@ -1,4 +1,5 @@
 import * as Promise from 'bluebird';
+import { editorConfig } from '../vendor';
 
 export class Utils {
 
@@ -72,5 +73,12 @@ export class Utils {
       rowData: csvRows,
       showProgress: false
     };
+  }
+
+  static setEditorMode({fontSize, vimMode, editor}) {
+    const _id = editorConfig.recordId;
+    if(vimMode) editor.setKeyboardHandler('ace/keyboard/vim');
+    else editor.setKeyboardHandler('');
+    return editorConfig.update({ _id, vimMode, fontSize });
   }
 }
