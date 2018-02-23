@@ -3,13 +3,17 @@ import { BottomNavigation, BottomNavigationItem } from './index';
 
 const styles: any = {
   nav: { backgroundColor: '#d7dddd', height: 75 },
-  sqlIco: { margin: '10px 0 0 15px' }
+  sqlIco: { margin: '10px 0 0 15px' },
 };
 
 export function QueryActions(props: any) {
-  const { newQuery, save, clear, exec, showFile } = props;
+  const { newQuery, save, clear, exec, showFile, accountName } = props;
   return (
     <BottomNavigation style={styles.nav}>
+      <BottomNavigationItem label={<strong>{accountName}</strong>}
+        style={{marginTop: '10px'}}
+        icon={<i className='fa fa-user-o fa-2x' />}
+      />
       <BottomNavigationItem label='Execute SQL'
         icon={
           <span className='fa-stack fa-lg'>
