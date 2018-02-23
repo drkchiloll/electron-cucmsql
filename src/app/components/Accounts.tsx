@@ -54,8 +54,10 @@ export class Accounts extends React.Component<any,any> {
         account = accounts[selectedAcct];
       this.setState({ api, accounts, selectedAcct, account });
     });
-
   }
+
+  emitAccountName = (name) => this.props.accountName(name);
+
   handleAccountsToggle = () => {
     this.setState({ openAccounts: !this.state.openAccounts });
   }
@@ -183,6 +185,7 @@ export class Accounts extends React.Component<any,any> {
                   Promise.all([
                     api.update(account), api.update(prevAcct)
                   ]).then(() => {
+                    this.emitAccountName(account.name);
                     this.setState({ selectedAcct });
                   })
                 }} >

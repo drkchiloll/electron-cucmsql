@@ -20,6 +20,7 @@ export class QueryWindow extends React.Component<any,any> {
   constructor(props) {
     super(props);
     this.state = {
+      accountName: 'Account Pending',
       aceFocus: false,
       saveDialog: false,
       fileDialog: false,
@@ -60,9 +61,16 @@ export class QueryWindow extends React.Component<any,any> {
       this.setState({ editorWidth });
     };
     setTimeout(() => {
-      let { vimMode, fontSize, recordId } = editorConfig;
-      this._setEditorMode(null, vimMode);
-      this.setState({ fontSize });
+      let { vimMode, fontSize } = editorConfig;
+      Promise.all([
+        this._getAccount(),
+        Utils.setEditorMode({
+          fontSize, vimMode, editor: this.state.editor
+        })
+      ]).then((results) => {
+        this.setState({ fontSize, vimMode, accountName: results[0].name});
+        this.state.editor.focus();
+      })
     }, 800);
     
     let queryApi = new Api({ db: 'queryDb', dbName: 'cucm-query' }),
@@ -84,6 +92,9 @@ export class QueryWindow extends React.Component<any,any> {
     });
   }
   componentWillReceiveProps(nextProps) {
+    if(nextProps && nextProps.accountName) {
+      this.setState({ accountName: nextProps.accountName })
+    }
     let aceFocus = nextProps.view==='mainView' ? true: false;
     this.setState({ aceFocus });
   }
@@ -122,9 +133,6 @@ export class QueryWindow extends React.Component<any,any> {
     let dbApi = new Api({ db: 'acctDb', dbName: 'accounts' });
     return dbApi.get({ selected: true }).then((record:any) => {
       let account = record[0];
-      delete account._id;
-      delete account.name;
-      delete account.selected;
       return account;
     });
   }
@@ -254,24 +262,6 @@ export class QueryWindow extends React.Component<any,any> {
       this._execUpdateQuery(queryStatements);
     });
   }
-  _setEditorMode = (e, checked) => {
-    let _id = editorConfig.recordId,
-        fontSize = this.state.fontSize;
-    if(checked) this.state.editor.setKeyboardHandler('ace/keyboard/vim');
-    else this.state.editor.setKeyboardHandler('');
-    editorConfig.update({ _id, vimMode: checked, fontSize }).then((num) => {
-      this.setState({ vimMode: checked });
-      this.state.editor.focus();
-    });
-  }
-  _rowDblClick(evt, rowIndex) {
-    let { id } = evt.target,
-        divId = $(`#${evt.target.id}`),
-        txtClass = $(`.${evt.target.id}`)[0];
-    $(divId).toggle();
-    $(txtClass).toggle()
-    setTimeout(() => $(`input[name="${id}"`).focus(), 0);
-  }
   _clear = () => {
     let {
       selectedQuery, rows, rowData, columns, columnWidths, updateStatements
@@ -323,11 +313,11 @@ export class QueryWindow extends React.Component<any,any> {
       })
     });
   }
-
   render() {
     let {
       queryName, fileDialog, saveDialog,
-      aceFocus, queries, selectedQuery, openTable
+      aceFocus, queries, selectedQuery, openTable,
+      fontSize, editor
     } = this.state;
     return (
       <div>
@@ -350,19 +340,29 @@ export class QueryWindow extends React.Component<any,any> {
             newQuery={this._newQuery}
             showFile={() => this.setState({ fileDialog: true})}
             exec={this._execQuery}
-            clear={this._clear} />
+            clear={this._clear}
+            accountName={this.state.accountName} />
           <Editor 
             init={(editor) => this.setState({ editor })}
             change={(selectedStatement) =>
               this.setState({ selectedStatement })}
             { ...this.state } />
           <EditorResizer changeHeight={
-            (editorHeight) => this.setState({ editorHeight })
+            editorHeight => this.setState({ editorHeight })
           } />
           <LinearProgress mode={this.state.progressBar}
             color={this.state.progressColor} value={100}
             style={{ height: 12, display: this.state.showProgress ? 'block': 'none' }} />
-          <VimToggle vimMode={this.state.vimMode} set={this._setEditorMode} />
+          <VimToggle
+            vimMode={this.state.vimMode}
+            set={(e, checked) => {
+              Utils.setEditorMode({
+                fontSize, editor, vimMode: checked
+              }).then(() => {
+                this.setState({ vimMode: checked });
+                editor.focus();
+              });
+            }} />
           {
             openTable ?
               <div>
