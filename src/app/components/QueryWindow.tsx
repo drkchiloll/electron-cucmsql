@@ -10,7 +10,7 @@ import {
   IconButton, FontIcon, Snackbar, LinearProgress,
   SelectableList, CsvCreator, fs, QueryActions,
   CsvUploadPopup, SaveQueryPopup, EditorResizer,
-  Editor, Queries
+  Editor, Queries, VimToggle
 } from './index';
 
 import { Utils } from '../lib/utils';
@@ -360,16 +360,7 @@ export class QueryWindow extends React.Component<any,any> {
           <LinearProgress mode={this.state.progressBar}
             color={this.state.progressColor} value={100}
             style={{ height: 12, display: this.state.showProgress ? 'block': 'none' }} />
-          <div style={{float:'right'}}>
-            <Toggle
-              label='Enable VIM Mode'
-              toggled={this.state.vimMode}
-              trackStyle={{backgroundColor: 'red'}}
-              thumbStyle={{backgroundColor:'#ffcccc'}}
-              thumbSwitchedStyle={{backgroundColor: '#72d86e'}} //Thumb Checked/On
-              trackSwitchedStyle={{backgroundColor: 'green'}} // Track Checked/On
-              onToggle={this._setEditorMode} />
-          </div>
+          <VimToggle vimMode={this.state.vimMode} set={this._setEditorMode} />
           <div style={{ display: this.state.openTable ? 'block': 'none' }}>
             <div style={{width:50}}>
               <CsvCreator

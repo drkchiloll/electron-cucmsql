@@ -57,3 +57,4 @@ export { SaveQueryPopup } from './SaveQueryPopup';
 export { EditorResizer } from './EditorResizer';
 export { Editor } from './Editor';
 export { Queries } from './Queries';
+export { VimToggle } from './VimToggle';
