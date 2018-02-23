@@ -23,7 +23,7 @@ export class CucmSql {
   }
 
   parseResp(data:string) {
-    console.log(data);
+    // console.log(data);
     const doc = new dom().parseFromString(data);
     let rows = Array.from(doc.getElementsByTagName('row'));
     if(rows && rows.length === 0) {
@@ -35,7 +35,7 @@ export class CucmSql {
         return o;
       }, {})
     }).then((object:any) => {
-      console.log(object);
+      // console.log(object);
       return object;
     });
   }
