@@ -10,7 +10,8 @@ import {
   IconButton, FontIcon, Snackbar, LinearProgress,
   SelectableList, CsvCreator, fs, QueryActions,
   CsvUploadPopup, SaveQueryPopup, EditorResizer,
-  Editor, Queries, VimToggle, ExportCsvButton
+  Editor, Queries, VimToggle, ExportCsvButton,
+  QueryResultTable
 } from './index';
 
 import { Utils } from '../lib/utils';
@@ -325,7 +326,8 @@ export class QueryWindow extends React.Component<any,any> {
 
   render() {
     let {
-      queryName, fileDialog, saveDialog, aceFocus, queries, selectedQuery
+      queryName, fileDialog, saveDialog,
+      aceFocus, queries, selectedQuery, openTable
     } = this.state;
     return (
       <div>
@@ -361,72 +363,19 @@ export class QueryWindow extends React.Component<any,any> {
             color={this.state.progressColor} value={100}
             style={{ height: 12, display: this.state.showProgress ? 'block': 'none' }} />
           <VimToggle vimMode={this.state.vimMode} set={this._setEditorMode} />
-          <div style={{ display: this.state.openTable ? 'block': 'none' }}>
-            <ExportCsvButton 
-              headers={this.state.headers}
-              rows={this.state.rowData || []} />
-            <Table
-              rowsCount={this.state.rows[0].length}
-              rowHeight={this.state.rowHeight}
-              headerHeight={50}
-              width={this.state.editorWidth}
-              height={500}
-              onColumnResizeEndCallback={(newWidth, columnKey) => {
-                let columnWidths = this.state.columnWidths;
-                columnWidths[columnKey] = newWidth;
-                this.setState({ columnWidths });
-              }}
-              isColumnResizing={false}
-              onRowDoubleClick={this._rowDblClick} >
-              {
-                this.state.columns.map((col, i) => {
-                  return (
-                    <Column key={`${col}_${i}`} columnKey={col}
-                      header={col}
-                      isResizable={true}
-                      width={this.state.columnWidths[col]}
-                      cell={({ rowIndex, width, height }) =>{
-                        return (
-                          <Cell
-                            columnKey={col}
-                            height={height}
-                            width={width}
-                            rowIndex={rowIndex}>
-                            <div id={`col_${i}_row_${rowIndex}`}>
-                              {this.state.rows[i][rowIndex][col]}
-                            </div>
-                            <TextField
-                              name={`col_${i}_row_${rowIndex}`}
-                              style={{display:'none'}}
-                              value={this.state.rows[i][rowIndex][col]}
-                              underlineShow={false}
-                              className={`col_${i}_row_${rowIndex}`}
-                              onChange={(e, newValue) => {
-                                let rows = this.state.rows;
-                                rows[i][rowIndex][col] = newValue;
-                                this.setState({ rows });
-                              }}
-                              onBlur={() => {
-                                $(`.col_${i}_row_${rowIndex}`).toggle();
-                                $(`#col_${i}_row_${rowIndex}`).toggle();
-                              }} />
-                          </Cell>
-                        )
-                      }}/>
-                  );
-                })
-              }
-            </Table>
-          </div>
-          <div style={{ display: this.state.sqlError ? 'block': 'none'}}>
-            <Chip
-              backgroundColor={blue300}
-              style={{ margin: 20 }}
-              labelStyle={{fontSize:'16px'}}>
-              <Avatar size={32} color={red300} backgroundColor={indigo900} icon={<SvgIconErrorOutline />} />
-              {this.state.errMessage}
-            </Chip>
-          </div>
+          {
+            openTable ?
+              <div>
+                <ExportCsvButton
+                  headers={this.state.headers}
+                  rows={this.state.rowData || []} />
+                <QueryResultTable
+                  {...this.state}
+                  rowChange={(rows) => this.setState({ rows })}
+                  resizeColumn={columnWidths => this.setState({ columnWidths })} />
+              </div> :
+              null
+          }
         </div>
         {
           fileDialog ?

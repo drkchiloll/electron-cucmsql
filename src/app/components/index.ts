@@ -59,3 +59,4 @@ export { Editor } from './Editor';
 export { Queries } from './Queries';
 export { VimToggle } from './VimToggle';
 export { ExportCsvButton } from './ExportCsvButton';
+export { QueryResultTable } from './QueryResultTable';
