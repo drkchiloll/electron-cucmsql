@@ -10,7 +10,7 @@ import {
   IconButton, FontIcon, Snackbar, LinearProgress,
   SelectableList, CsvCreator, fs, QueryActions,
   CsvUploadPopup, SaveQueryPopup, EditorResizer,
-  Editor, Queries, VimToggle
+  Editor, Queries, VimToggle, ExportCsvButton
 } from './index';
 
 import { Utils } from '../lib/utils';
@@ -362,7 +362,10 @@ export class QueryWindow extends React.Component<any,any> {
             style={{ height: 12, display: this.state.showProgress ? 'block': 'none' }} />
           <VimToggle vimMode={this.state.vimMode} set={this._setEditorMode} />
           <div style={{ display: this.state.openTable ? 'block': 'none' }}>
-            <div style={{width:50}}>
+            <ExportCsvButton 
+              headers={this.state.headers}
+              rows={this.state.rowData || []} />
+            {/* <div style={{width:50}}>
               <CsvCreator
                 filename='export'
                 headers={this.state.headers}
@@ -373,7 +376,7 @@ export class QueryWindow extends React.Component<any,any> {
                   primary={true}
                   icon={<FontIcon color='blue' className='fa fa-external-link' style={{fontSize: 18, top: 2}} />} />
               </CsvCreator>
-            </div>
+            </div> */}
             <Table
               rowsCount={this.state.rows[0].length}
               rowHeight={this.state.rowHeight}
