@@ -33,15 +33,6 @@ export function QueryActions(props: any) {
         label='New Query'
         onClick={newQuery} />
       <BottomNavigationItem
-        className='upload-csv'
-        icon={
-          <span className='fa-stack fa-lg'>
-            <i className='fa fa-cloud-upload fa-lg' />
-          </span>
-        }
-        label='Upload CSV'
-        onClick={showFile} />
-      <BottomNavigationItem
         className='save-query'
         icon={
           <span className='fa-stack fa-lg'>
@@ -58,7 +49,16 @@ export function QueryActions(props: any) {
           </span>
         }
         label='Reset Query'
-        onClick={clear} />
+        onClick={() => window.location.reload()} />
+      <BottomNavigationItem
+        className='upload-csv'
+        icon={
+          <span className='fa-stack fa-lg'>
+            <i className='fa fa-cloud-upload fa-lg' />
+          </span>
+        }
+        label='Upload CSV'
+        onClick={showFile} />
     </BottomNavigation>
   );
 }
