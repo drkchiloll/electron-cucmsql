@@ -22,9 +22,9 @@ class CucmSqlQueryTool {
   _onReady() {
     this.mainWindow = new BrowserWindow({
       width:1024,
-      height:768,
+      height:968,
       minWidth:1024,
-      minHeight:600,
+      minHeight:968,
       acceptFirstMouse:true
     });
 
