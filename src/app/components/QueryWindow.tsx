@@ -326,19 +326,6 @@ export class QueryWindow extends React.Component<any,any> {
           queries={queries}
           change={this._queryChange}
           selectedQuery={selectedQuery} />
-        {/* <Drawer open={true} width={drawerWidth}
-          containerStyle={{
-            marginTop:80, backgroundColor: '#d7dddd'
-          }}>
-          <div style={{marginLeft:20}}>
-            <TextField hintText='Search' fullWidth={true} />
-            <Subheader>Query List</Subheader>
-            <Queries
-              queries={queries}
-              change={this._queryChange}
-              selectedQuery={selectedQuery} />
-          </div>
-        </Drawer> */}
         <div style={{position:'fixed', left: 310}}>
           <QueryActions
             save={this._saveQuery}
@@ -347,6 +334,29 @@ export class QueryWindow extends React.Component<any,any> {
             exec={this._execQuery}
             clear={this._clear}
             accountName={this.state.accountName} />
+          {
+            queryName ?
+              <div>
+                <hr style={{margin:0, padding:0}}/>
+                <TextField
+                  id='qname'
+                  underlineShow={false}
+                  style={{ marginLeft: 10, width: 350 }}
+                  value={queryName}
+                  onChange={(e, val) => {
+                    this.setState({ queryName: val });
+                  }} />
+                <IconButton iconClassName='fa fa-ban fa-lg' />
+                <IconButton iconClassName='fa fa-floppy-o fa-lg'
+                  onClick={() => {
+                    const query = queries[selectedQuery];
+                    queries[selectedQuery].name = queryName;
+                    this.state.queryApi.update(query).then(() =>
+                      this.setState({ queries }));
+                  }} />
+              </div> :
+              null
+          }
           <Editor 
             init={(editor) => this.setState({ editor })}
             change={(selectedStatement) =>
