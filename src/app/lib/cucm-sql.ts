@@ -1,6 +1,7 @@
 import template from './template';
 import * as Promise from 'bluebird';
 import * as request from 'request';
+import * as moment from 'moment';
 import { DOMParser as dom } from 'xmldom';
 
 export class CucmSql {
@@ -112,7 +113,11 @@ export class CucmSql {
     return Promise.reduce(keys, (a, key) => {
       return Promise.map(data, (obj) => {
         let o = {};
-        o[key] = obj[key];
+        if(key.includes('date')) {
+          o[key] = moment.unix(obj[key]).format('MM/DD/YYYY h:mm a');
+        } else {
+          o[key] = obj[key];
+        }
         return o;
       }).then((arrs) => {
         a.push(arrs);
