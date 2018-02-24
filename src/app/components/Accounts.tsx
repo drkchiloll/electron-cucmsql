@@ -1,14 +1,11 @@
-import * as React from 'react';
-import * as $ from 'jquery';
 import {
+  React, $, Api, CucmSql, moment, Promise,
   Drawer, MenuItem, Dialog, FlatButton,
   BottomNavigation, BottomNavigationItem,
   FontIcon, Paper, Divider, TextField,
-  Subheader, List, ListItem, makeSelectable,
-  SelectField, Snackbar
-} from 'material-ui';
-let SelectableList = makeSelectable(List);
-import { Api, CucmSql, moment, Promise } from '../components';
+  Subheader, List, ListItem, SelectableList,
+  Snackbar, SelectField
+} from './index';
 
 export class Accounts extends React.Component<any,any> {
   constructor() {

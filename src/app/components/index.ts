@@ -27,7 +27,8 @@ import {
   Subheader, List, ListItem, makeSelectable,
   BottomNavigation, BottomNavigationItem,
   Toggle, Dialog, FlatButton, Chip, Avatar,
-  IconButton, FontIcon, Snackbar, LinearProgress
+  IconButton, FontIcon, Snackbar, LinearProgress,
+  MenuItem, SelectField
 } from 'material-ui';
 
 import CsvCreator from 'react-csv-creator';
@@ -43,7 +44,8 @@ export {
   Toggle, Dialog, FlatButton, Chip, Avatar,
   indigo900, blue300, red300, SvgIconErrorOutline,
   IconButton, FontIcon, Snackbar, LinearProgress,
-  CsvCreator, SelectableList, fs, moment, indigo50
+  CsvCreator, SelectableList, fs, moment, indigo50,
+  MenuItem, SelectField
 };
 
 // Component Exports
