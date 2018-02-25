@@ -4,11 +4,13 @@ import {
 
 const styles: any = {
   paper: {
+    position: 'absolute',
     marginRight: 10,
-    maxHeight: 968,
     overflow: 'auto',
     backgroundColor: '#d7dddd',
-    height: 'auto'
+    height: 'auto',
+    top: 40,
+    bottom: 120
   }
 };
 
