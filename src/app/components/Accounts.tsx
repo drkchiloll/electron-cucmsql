@@ -25,6 +25,7 @@ export class Accounts extends React.Component<any,any> {
   componentWillMount() {
     let accounts = Utils.getAccounts();
     let selectedAcct = accounts.findIndex(acct => acct.selected);
+    if(selectedAcct === -1) selectedAcct = 0;
     this.setState({ accounts, selectedAcct, account: accounts[selectedAcct] });
   }
 
@@ -175,23 +176,23 @@ export class Accounts extends React.Component<any,any> {
                       onClick={()=>{
                         console.log('remove touched');
                         let accounts = this.state.accounts,
-                            acctIdx = this.state.selectedAcct,
-                            { _id, name } = accounts[acctIdx];
-                        this.state.api.remove(_id).then(() => {
-                          accounts.splice(acctIdx, 1);
-                          if(accounts.length === 0) {
-                            accounts.push({
-                              name:'New Account',host:'',version:'8.0',
-                              username:'',password:''
-                            })
-                          }
-                          this.emitAccountName(accounts[0].name);
-                          this.setState({
-                            selectedAcct: 0,
-                            accounts,
-                            acctMsg: `${name} removed successfully`,
-                            openSnack: true
+                            acctIdx = this.state.selectedAcct;
+                        if(accounts.length === 1) {
+                          return this.setState({
+                            openSnack: true,
+                            acctMsg: `This is the only account setup..Please Edit this Account`
                           });
+                        }
+                        accounts.splice(acctIdx, 1);
+                        if(acctIdx !== 0) accounts[acctIdx - 1].selected = true;
+                        else accounts[0].selected = true;
+                        this.emitAccountName(accounts[acctIdx - 1].name);
+                        Utils.setAccounts(accounts);
+                        this.setState({
+                          selectedAcct: 0,
+                          accounts,
+                          acctMsg: `${name} removed successfully`,
+                          openSnack: true
                         });
                       }}
                     />
