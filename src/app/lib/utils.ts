@@ -81,4 +81,30 @@ export class Utils {
     else editor.setKeyboardHandler('');
     return editorConfig.update({ _id, vimMode, fontSize });
   }
+
+  static setAccounts(accounts): void {
+    localStorage.setItem('accounts', JSON.stringify(accounts));
+  }
+
+  static getAccounts(): Accounts[] {
+    let accounts: Accounts[] = JSON.parse(localStorage.getItem('accounts'));
+    if(!accounts) {
+      accounts = [{
+        name: 'New', version: '8.5', host: '', username: '', password: '', selected: true,
+        status: 'red'
+      }];
+      this.setAccounts(accounts);
+    }
+    return accounts;
+  }
+}
+
+export interface Accounts {
+  name: string;
+  version: string;
+  host: string;
+  username: string;
+  password: string;
+  selected: boolean;
+  status: string;
 }
