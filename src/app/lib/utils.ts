@@ -86,8 +86,8 @@ export class Utils {
     localStorage.setItem('accounts', JSON.stringify(accounts));
   }
 
-  static getAccounts(): Accounts[] {
-    let accounts: Accounts[] = JSON.parse(localStorage.getItem('accounts'));
+  static accounts(): Account[] {
+    let accounts: Account[] = JSON.parse(localStorage.getItem('accounts'));
     if(!accounts) {
       accounts = [{
         name: 'New', version: '8.5', host: '', username: '', password: '', selected: true,
@@ -97,9 +97,18 @@ export class Utils {
     }
     return accounts;
   }
+
+  static getAccounts(): Account[] {
+    return this.accounts();
+  }
+
+  static getAccount(): Account {
+    let accounts = this.accounts();
+    return accounts.find(account => account.selected);
+  }
 }
 
-export interface Accounts {
+export interface Account {
   name: string;
   version: string;
   host: string;

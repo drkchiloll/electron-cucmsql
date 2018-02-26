@@ -62,13 +62,10 @@ export class QueryWindow extends React.Component<any,any> {
     };
     setTimeout(() => {
       let { vimMode, fontSize } = editorConfig;
-      Promise.all([
-        this._getAccount(),
-        Utils.setEditorMode({
-          fontSize, vimMode, editor: this.state.editor
-        })
-      ]).then((results) => {
-        this.setState({ fontSize, vimMode, accountName: results[0].name});
+      Utils.setEditorMode({
+        fontSize, vimMode, editor: this.state.editor
+      }).then((results) => {
+        this.setState({ fontSize, vimMode });
         this.state.editor.focus();
       })
     }, 800);
@@ -130,11 +127,7 @@ export class QueryWindow extends React.Component<any,any> {
     this.state.editor.focus();
   }
   _getAccount() {
-    let dbApi = new Api({ db: 'acctDb', dbName: 'accounts' });
-    return dbApi.get({ selected: true }).then((record:any) => {
-      let account = record[0];
-      return account;
-    });
+    return Utils.getAccount();
   }
   _handler = ({ handle, statement, action }) => {
     return handle[action](statement)
@@ -154,49 +147,49 @@ export class QueryWindow extends React.Component<any,any> {
   _execQuery = () => {
     this.setState({ showProgress: true });
     // console.log(this.state.queryName);
-    this._getAccount().then((account:any) => {
-      let cucmHandler = new CucmSql(account);
-      let sqlStatement = JSON.parse(
-        JSON.stringify(this.state.selectedStatement)
-      );
-      if(this.state.updateStatements) {
-        let {
-          columns, rows, rowData, headers, updateStatements, queryStatements
-        } = Utils.cleanState(this.state);
-        return Promise.each(updateStatements, (statement:string, i) => {
-          return this._handler({
-            handle: cucmHandler,
-            statement,
-            action: 'update'
-          })
-          .then((res:any) =>
-            this._handler({
-              handle: cucmHandler,
-              statement: queryStatements[i],
-              action: 'query'
-            }))
-          .then((resp:any) => {
-            if(i === 0) {
-              columns.push('New VM Profile');
-              headers.push({ id: 'New VM Profile' });
-              rows[4] = [];
-            }
-            if(!rows[4]) rows[4] = [];
-            rows[4].push({ 'New VM Profile': resp.rows[2][0].vmprofile });
-            if(rowData && rowData[i]) rowData[i]['New VM Profile'] = resp.rows[2][0].vmprofile;
-          });
-        }).then(() => {
-          let columnWidths = Utils.colWidth(columns);
-          this.setState({ columns, rowData, rows, headers, columnWidths, showProgress: false });
-        })
-      } else if(this.state.selectedStatement) {
-        this._handler({
+    const account = this._getAccount();
+    // this._getAccount().then((account:any) => {
+    let cucmHandler = new CucmSql(account);
+    let sqlStatement = JSON.parse(
+      JSON.stringify(this.state.selectedStatement)
+    );
+    if(this.state.updateStatements) {
+      let {
+        columns, rows, rowData, headers, updateStatements, queryStatements
+      } = Utils.cleanState(this.state);
+      return Promise.each(updateStatements, (statement:string, i) => {
+        return this._handler({
           handle: cucmHandler,
-          statement: sqlStatement,
-          action: 'query'
-        }).then((resp) => this.setState({ ...Utils.handleCucmResp(resp) }))
-      }
-    });
+          statement,
+          action: 'update'
+        })
+        .then((res:any) =>
+          this._handler({
+            handle: cucmHandler,
+            statement: queryStatements[i],
+            action: 'query'
+          }))
+        .then((resp:any) => {
+          if(i === 0) {
+            columns.push('New VM Profile');
+            headers.push({ id: 'New VM Profile' });
+            rows[4] = [];
+          }
+          if(!rows[4]) rows[4] = [];
+          rows[4].push({ 'New VM Profile': resp.rows[2][0].vmprofile });
+          if(rowData && rowData[i]) rowData[i]['New VM Profile'] = resp.rows[2][0].vmprofile;
+        });
+      }).then(() => {
+        let columnWidths = Utils.colWidth(columns);
+        this.setState({ columns, rowData, rows, headers, columnWidths, showProgress: false });
+      })
+    } else if(this.state.selectedStatement) {
+      this._handler({
+        handle: cucmHandler,
+        statement: sqlStatement,
+        action: 'query'
+      }).then((resp) => this.setState({ ...Utils.handleCucmResp(resp) }))
+    }
   }
   _saveQuery = () => {
     let { selectedStatement, selectedQuery, queries, queryApi } = this.state,
@@ -281,37 +274,36 @@ export class QueryWindow extends React.Component<any,any> {
   _execUpdateQuery = (statements) => {
     // console.log(statements);
     let columns, rows, csvRows, columnWidths, rowHeight, HEADERS;
-    this._getAccount().then((account: any) => {
-      let cucmHandler = new CucmSql(account);
-      Promise.each(statements, (statement: any, i: number) => {
-        return cucmHandler.query(statement).then((resp: any) => {
-          if(i === 0) {
-            columns = resp.columns;
-            HEADERS = columns.map((col: any, i) => ({ id: col }));
-            columnWidths = columns.reduce((o, col) => {
-              o[col] = 200;
-              return o;
-            }, {});
-            rowHeight = 50;
-            rows = resp.rows;
-            csvRows = resp.csvRows;
-          } else {
-            if(resp.rows) {
-              resp.rows.forEach((rs, i) => {
-                rows[i].push(rs[0]);
-              });
-              if(csvRows) csvRows = csvRows.concat(resp.csvRows);
-            }
+    const account = this._getAccount();
+    let cucmHandler = new CucmSql(account);
+    Promise.each(statements, (statement: any, i: number) => {
+      return cucmHandler.query(statement).then((resp: any) => {
+        if(i === 0) {
+          columns = resp.columns;
+          HEADERS = columns.map((col: any, i) => ({ id: col }));
+          columnWidths = columns.reduce((o, col) => {
+            o[col] = 200;
+            return o;
+          }, {});
+          rowHeight = 50;
+          rows = resp.rows;
+          csvRows = resp.csvRows;
+        } else {
+          if(resp.rows) {
+            resp.rows.forEach((rs, i) => {
+              rows[i].push(rs[0]);
+            });
+            if(csvRows) csvRows = csvRows.concat(resp.csvRows);
           }
-        })
-      }).then(() => {
-        this.setState({
-          columns, rows, columnWidths, openTable: true,
-          rowHeight, headers: HEADERS, rowData: csvRows,
-          showProgress: false
-        });
+        }
       })
-    });
+    }).then(() => {
+      this.setState({
+        columns, rows, columnWidths, openTable: true,
+        rowHeight, headers: HEADERS, rowData: csvRows,
+        showProgress: false
+      });
+    })
   }
   render() {
     let {

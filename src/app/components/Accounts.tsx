@@ -26,6 +26,7 @@ export class Accounts extends React.Component<any,any> {
     let accounts = Utils.getAccounts();
     let selectedAcct = accounts.findIndex(acct => acct.selected);
     if(selectedAcct === -1) selectedAcct = 0;
+    this.emitAccountName(accounts[selectedAcct].name);
     this.setState({ accounts, selectedAcct, account: accounts[selectedAcct] });
   }
 
@@ -50,6 +51,7 @@ export class Accounts extends React.Component<any,any> {
         acctMsg:string;
     Utils.setAccounts(accounts);
     acctMsg = `${account.name} updated successfully`;
+    this.emitAccountName(account.name);
     this.setState({ accounts, openSnack: true, acctMsg });
   }
 
