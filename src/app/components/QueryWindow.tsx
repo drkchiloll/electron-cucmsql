@@ -11,10 +11,8 @@ import {
   SelectableList, CsvCreator, fs, QueryActions,
   CsvUploadPopup, SaveQueryPopup, EditorResizer,
   Editor, Queries, VimToggle, ExportCsvButton,
-  QueryResultTable, QuerySidePanel
+  QueryResultTable, QuerySidePanel, Utils
 } from './index';
-
-import { Utils } from '../lib/utils';
 
 export class QueryWindow extends React.Component<any,any> {
   constructor(props) {
@@ -148,7 +146,6 @@ export class QueryWindow extends React.Component<any,any> {
     this.setState({ showProgress: true });
     // console.log(this.state.queryName);
     const account = this._getAccount();
-    // this._getAccount().then((account:any) => {
     let cucmHandler = new CucmSql(account);
     let sqlStatement = JSON.parse(
       JSON.stringify(this.state.selectedStatement)
@@ -235,10 +232,12 @@ export class QueryWindow extends React.Component<any,any> {
     this.setState({ showProgress: true });
     // value 1: dn, value 2: partition, value 3: new VM Profile
     switch(queryName) {
-      case 'Update VMProfile':
+      case queryName.includes('VMProfile'):
         return this._updateVmp({
           csv, sqlStatement, queryName
         });
+      case queryName.includes('Translation Pattern'):
+        break;
     }
   }
   _updateVmp = ({ csv, sqlStatement, queryName }) => {
