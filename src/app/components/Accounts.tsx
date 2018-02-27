@@ -4,10 +4,8 @@ import {
   BottomNavigation, BottomNavigationItem,
   FontIcon, Paper, Divider, TextField,
   Subheader, List, ListItem, SelectableList,
-  Snackbar, SelectField
+  Snackbar, SelectField, Utils
 } from './index';
-
-import { Utils } from '../lib/utils';
 
 export class Accounts extends React.Component<any,any> {
   constructor() {
@@ -62,7 +60,6 @@ export class Accounts extends React.Component<any,any> {
     let cucm = new CucmSql({ host, version, username, password }),
       statement = cucm.testAxlQuery;
     cucm.query(statement, true).then((resp) => {
-      console.log(resp);
       account['lastTested'] = moment().toDate();
       if(resp && resp instanceof Array) {
         account['status'] = 'green';
@@ -186,9 +183,15 @@ export class Accounts extends React.Component<any,any> {
                           });
                         }
                         accounts.splice(acctIdx, 1);
-                        if(acctIdx !== 0) accounts[acctIdx - 1].selected = true;
-                        else accounts[0].selected = true;
-                        this.emitAccountName(accounts[acctIdx - 1].name);
+                        let accountName: string;
+                        if(acctIdx !== 0) {
+                          accounts[acctIdx - 1].selected = true;
+                          accountName = accounts[acctIdx-1].name;
+                        } else {
+                          accounts[0].selected = true;
+                          accountName = accounts[0].name;
+                        }
+                        this.emitAccountName(accountName);
                         Utils.setAccounts(accounts);
                         this.setState({
                           selectedAcct: 0,
