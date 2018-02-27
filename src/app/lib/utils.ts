@@ -57,8 +57,9 @@ export class Utils {
   } 
 
   static handleCucmResp(resp: any) {
-    const { columns, rows, csvRows, errCode, errMessage } = resp;
+    const { columns, rows, csvRows, errCode, errMessage, error } = resp;
     if(errCode) return { sqlError: true, errMessage };
+    if(error) return { sqlError: true, errMessage: error };
     let columnWidths = this.colWidth(columns),
         rowHeight = 50;
     if(rows[0].length === 1 && columns[0] === 'Error') rowHeight = 105;
