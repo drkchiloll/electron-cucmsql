@@ -4,12 +4,13 @@ import * as brace from 'brace';
 import * as Promise from 'bluebird';
 import AceEditor from 'react-ace';
 import { Api } from '../lib/api';
+import { Utils } from '../lib/utils';
 import { CucmSql } from '../lib/cucm-sql';
 import { editorConfig } from '../vendor';
 import * as $ from 'jquery';
 import * as moment from 'moment';
 import * as fs from 'fs';
- 
+
 import 'brace/mode/mysql';
 import 'brace/theme/monokai';
 import 'brace/keybinding/vim';
@@ -45,7 +46,7 @@ export {
   indigo900, blue300, red300, SvgIconErrorOutline,
   IconButton, FontIcon, Snackbar, LinearProgress,
   CsvCreator, SelectableList, fs, moment, indigo50,
-  MenuItem, SelectField
+  MenuItem, SelectField, Utils
 };
 
 // Component Exports
