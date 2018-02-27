@@ -2,7 +2,7 @@ const path = require('path'),
 		  fs = require('fs'),
 		  webpack = require('webpack'),
 			merge = require('webpack-merge'),
-			BabiliPlugin = require("babili-webpack-plugin");
+			UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 
 const { NODE_ENV } = process.env;
 let nodeModules = {};
@@ -56,7 +56,7 @@ let dev = {
 
 let prod = {
 	plugins: [
-		new BabiliPlugin(),
+		new UglifyJsPlugin(),
 		new webpack.DefinePlugin({
 			"process.env": {
 				NODE_ENV: JSON.stringify("production")
