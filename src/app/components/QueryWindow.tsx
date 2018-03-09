@@ -337,8 +337,10 @@ export class QueryWindow extends React.Component<any,any> {
                   onChange={(e, val) => {
                     this.setState({ queryName: val });
                   }} />
-                <IconButton iconClassName='fa fa-ban fa-lg' />
-                <IconButton iconClassName='fa fa-floppy-o fa-lg'
+                <IconButton tooltip={'Delete Query'} iconClassName='fa fa-ban fa-lg'
+                  tooltipPosition='top-center' />
+                <IconButton tooltip={'Modify Query Name'} iconClassName='fa fa-floppy-o fa-lg'
+                  tooltipPosition='top-center'
                   onClick={() => {
                     const query = queries[selectedQuery];
                     queries[selectedQuery].name = queryName;
