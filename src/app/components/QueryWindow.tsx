@@ -40,7 +40,7 @@ export class QueryWindow extends React.Component<any,any> {
       rowHeight: 50,
       columnWidths: null,
       hrTop: 275,
-      editorHeight: 445,
+      editorHeight: 375,
       headers: [{id:'first',display: 'Generic'}],
       rowData: [{first:'generic'}],
       openSnack: false,
@@ -86,6 +86,8 @@ export class QueryWindow extends React.Component<any,any> {
       this._setEditorLine(this.state.editor);
     });
   }
+
+
   componentWillReceiveProps(nextProps) {
     if(nextProps && nextProps.accountName) {
       this.setState({ accountName: nextProps.accountName })
