@@ -69,7 +69,7 @@ export class Accounts extends React.Component<any,any> {
       Utils.setAccounts(accounts);
       this.setState({ account });
     }, (err) => {
-      alert('Test Failed');
+      alert(err.error);
       account['status'] = 'red';
       Utils.setAccounts(accounts);
       return;
@@ -106,6 +106,10 @@ export class Accounts extends React.Component<any,any> {
         icon={<FontIcon className='fa fa-window-close-o'/>}
         primary={true}
         onClick={() => {
+          let accounts = Utils.getAccounts();
+          let selectedAcct = accounts.findIndex(a => a.selected);
+          let account = accounts[selectedAcct];
+          this.setState({ account, selectedAcct, accounts });
           this.props.acctClose();
         }}
       />
@@ -158,15 +162,25 @@ export class Accounts extends React.Component<any,any> {
                       onClick={()=>{
                         console.log('add account');
                         let accounts = this.state.accounts;
-                        accounts.push({
-                          name:'New Account', host:'',
-                          version:'8.5', username:'',
-                          password:''
+                        accounts = accounts.map(a => {
+                          if(a.selected) a.selected = false;
+                          return a;
                         });
+                        const account: any = {
+                          name: 'New Account',
+                          host: '',
+                          version: '12.0',
+                          username: '',
+                          password: '',
+                          selected: true,
+                          status: 'red'
+                        };
+                        accounts.push(account);
                         this.setState({
                           accounts,
-                          selectedAcct: accounts.length - 1
-                        })
+                          selectedAcct: accounts.length - 1,
+                          account
+                        });
                       }}
                     />
                     <BottomNavigationItem
@@ -234,7 +248,7 @@ export class Accounts extends React.Component<any,any> {
                   accounts[selectedAcct].version = val
                   this.setState({ accounts });
                 }} >
-                {['8.0','8.5','9.0','9.1','10.0','10.5','11.0','11.5'].map((ver,i) => {
+                {['8.0','8.5','9.0','9.1','10.0','10.5','11.0','11.5','12.0'].map((ver,i) => {
                   return <MenuItem value={ver} key={`version_${i}`} primaryText={ver} />
                 })}
               </SelectField>
