@@ -183,7 +183,18 @@ export class CucmSql {
     return new Promise((resolve, reject) => {
       request(options, (err, res, body) => {
         if(err) return reject({ error: err });
-        if(res.statusCode >= 500 && res.statusCode <= 599) return reject(res);
+        if(res.statusCode >= 400 && res.statusCode <= 599) {
+          let errorMessage: string;
+          if(res.statusCode === 599) {
+            errorMessage = body
+              .match(/(HTTP Status .*)/)[1]
+              .replace(/\s\s.*/, '')
+              .trim();
+          } else if(res.statusCode === 401) {
+            errorMessage = 'HTTP Status 401 - Authentication Error';
+          }
+          return reject({error: errorMessage});
+        }
         if(res.statusCode===200) return resolve(body);
         return resolve();
       });
