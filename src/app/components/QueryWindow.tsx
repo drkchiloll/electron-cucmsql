@@ -51,6 +51,7 @@ export class QueryWindow extends React.Component<any,any> {
       queryHeight: window.innerHeight - 90
     };
   }
+
   componentWillMount() {
     window.onresize = () => {
       let { drawerWidth, queryHeight } = this.state;
@@ -87,7 +88,6 @@ export class QueryWindow extends React.Component<any,any> {
     });
   }
 
-
   componentWillReceiveProps(nextProps) {
     if(nextProps && nextProps.accountName) {
       this.setState({ accountName: nextProps.accountName })
@@ -95,6 +95,7 @@ export class QueryWindow extends React.Component<any,any> {
     let aceFocus = nextProps.view==='mainView' ? true: false;
     this.setState({ aceFocus });
   }
+
   _setEditorLine(editor) {
     setTimeout(() => {
       let row = editor.session.getLength() - 1,
@@ -104,6 +105,7 @@ export class QueryWindow extends React.Component<any,any> {
       // editor.setOptions({ maxLines: 25 });
     },0);
   }
+
   _queryChange = (e, value) => {
     let selectedStatement = this.state.queries[value].query,
         queryName = this.state.queries[value].name;
@@ -114,6 +116,7 @@ export class QueryWindow extends React.Component<any,any> {
     });
     this._setEditorLine(this.state.editor);
   }
+
   _newQuery = () => {
     let { selectedStatement, selectedQuery, queries } = this.state,
         current = selectedStatement,
@@ -126,9 +129,9 @@ export class QueryWindow extends React.Component<any,any> {
     this.setState({ selectedStatement, selectedQuery });
     this.state.editor.focus();
   }
-  _getAccount() {
-    return Utils.getAccount();
-  }
+
+  _getAccount = () => Utils.getAccount();
+
   _handler = ({ handle, statement, action }) => {
     return handle[action](statement)
       .catch(err => {
@@ -144,6 +147,7 @@ export class QueryWindow extends React.Component<any,any> {
         };
       });
   }
+
   _execQuery = () => {
     this.setState({ showProgress: true });
     // console.log(this.state.queryName);
@@ -190,6 +194,7 @@ export class QueryWindow extends React.Component<any,any> {
       }).then((resp) => this.setState({ ...Utils.handleCucmResp(resp) }))
     }
   }
+
   _saveQuery = () => {
     let { selectedStatement, selectedQuery, queries, queryApi } = this.state,
         current = selectedStatement,
@@ -207,6 +212,7 @@ export class QueryWindow extends React.Component<any,any> {
       }
     }
   }
+
   _saveNewQuery = () => {
     let {
       queries, queryApi, selectedStatement, queryName
@@ -223,6 +229,7 @@ export class QueryWindow extends React.Component<any,any> {
       });
     });
   }
+
   _upload = () => {
     let file = $('#csv-upload').prop('files')[0],
       csv = fs.readFileSync(file.path).toString().split('\n'),
@@ -242,6 +249,7 @@ export class QueryWindow extends React.Component<any,any> {
         break;
     }
   }
+
   _updateVmp = ({ csv, sqlStatement, queryName }) => {
     Utils.statements({
       csv, statement: sqlStatement
@@ -256,6 +264,7 @@ export class QueryWindow extends React.Component<any,any> {
       this._execUpdateQuery(queryStatements);
     });
   }
+
   _clear = () => {
     let {
       selectedQuery, rows, rowData, columns, columnWidths, updateStatements
@@ -272,6 +281,7 @@ export class QueryWindow extends React.Component<any,any> {
       });
     });
   }
+
   _execUpdateQuery = (statements) => {
     // console.log(statements);
     let columns, rows, csvRows, columnWidths, rowHeight, HEADERS;
@@ -306,6 +316,7 @@ export class QueryWindow extends React.Component<any,any> {
       });
     })
   }
+
   render() {
     let {
       queryName, fileDialog, saveDialog,
