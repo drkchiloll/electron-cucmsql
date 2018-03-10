@@ -21,6 +21,7 @@ export class Editor extends React.Component<any,any> {
     Vim.defineEx('write', 'w', (cm, inp) => this.props.save());
     this.props.init(editor);
   }
+  
   commandChange = (sql) => {
     const { editor } = this.props;
     if(editor.getSelectionRange().end.row >= 23) {
@@ -34,6 +35,7 @@ export class Editor extends React.Component<any,any> {
     }
     this.props.change(sql);
   }
+
   render() {
     const {
       editor, fontSize, selectedStatement,

@@ -1,14 +1,7 @@
 import * as React from 'react'
-import * as $ from 'jquery';
-import {
-  Tabs, Tab, FontIcon, Dialog,
-  FlatButton
-} from 'material-ui';
-
+import {Tabs, Tab, FontIcon, Dialog, FlatButton} from 'material-ui';
 // Import Components
-import {
-  Accounts, QueryWindow
-} from './index';
+import { Accounts, QueryWindow } from './index';
 
 export class App extends React.Component<any, any> {
   constructor() {
@@ -22,6 +15,7 @@ export class App extends React.Component<any, any> {
     this.handleClose = this.handleClose.bind(this);
     this._tabSelect = this._tabSelect.bind(this);
   }
+
   handleClose() {
     this.setState({
       openAcct: false,
@@ -29,6 +23,7 @@ export class App extends React.Component<any, any> {
       tabValue: 'mainView'
     });
   }
+
   _tabSelect(tabValue: string) {
     let saveQuery = false;
     if(tabValue === 'save') saveQuery = true;
@@ -38,6 +33,11 @@ export class App extends React.Component<any, any> {
       saveQuery
     });
   }
+
+  styles: any = {
+    font: { fontSize: '80%' }
+  }
+
   render() {
     return (
       <div>
@@ -55,6 +55,7 @@ export class App extends React.Component<any, any> {
                   <i className='fa fa-server fa-stack-2x' />
                 </span>
               }
+              style={this.styles.font}
               label='Accounts'
               value='accts'>
               <Accounts
@@ -63,6 +64,7 @@ export class App extends React.Component<any, any> {
                 accountName={(name) => this.setState({ accountName: name })} />
             </Tab>
             <Tab
+              style={this.styles.font}
               icon={
                 <span className="fa-stack fa-lg">
                   <i className="fa fa-database fa-stack-2x fa-inverse" />

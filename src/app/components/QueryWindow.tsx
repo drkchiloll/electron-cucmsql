@@ -334,7 +334,7 @@ export class QueryWindow extends React.Component<any,any> {
                 <TextField
                   id='qname'
                   underlineShow={false}
-                  style={{ marginLeft: 10, width: 350 }}
+                  style={{ marginLeft: 10, width: 350, fontSize: '98%' }}
                   value={queryName}
                   onChange={(e, val) => {
                     this.setState({ queryName: val });

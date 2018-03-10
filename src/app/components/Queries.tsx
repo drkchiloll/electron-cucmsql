@@ -21,6 +21,7 @@ export function Queries(props: any) {
       <SelectableList value={props.selectedQuery} onChange={props.change}>
         { queries.map((query, i) =>
             <ListItem
+              style={{fontSize: '95%'}}
               key={`query_${i}`}
               value={i}
               primaryText={query.name} /> ) }
