@@ -1,5 +1,7 @@
 import * as Promise from 'bluebird';
 import { editorConfig } from '../vendor';
+import * as fs from 'fs';
+import * as path from 'path';
 
 export class Utils {
 
@@ -106,6 +108,18 @@ export class Utils {
   static getAccount(): Account {
     let accounts = this.accounts();
     return accounts.find(account => account.selected);
+  }
+
+  static getQueries() {
+    return new Promise((resolve, reject) => {
+      const ROOT_DIR = path.resolve(__dirname, '../.data');
+      fs.readFile(`${ROOT_DIR}/.cucm-query`, 'utf-8', (err, data:string) => {
+        let temp: string[] = data.replace(/\}/gi, '}}').split('}\n');
+        temp.pop();
+        const queries = temp.map(t => JSON.parse(t));
+        return resolve(queries);
+      });
+    });
   }
 }
 
