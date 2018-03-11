@@ -317,6 +317,19 @@ export class QueryWindow extends React.Component<any,any> {
     })
   }
 
+  importing = (query) => {
+    let { queries, queryApi } = this.state;
+    if(queries.find(q => q._id === query._id)) {
+      queries[queries.findIndex(q => q._id === query._id)] = query;
+      this.setState({ queries });
+      return queryApi.update(query);
+    } else {
+      queries.push(query);
+      this.setState({ queries });
+      return queryApi.add(query);
+    }
+  }
+
   render() {
     let {
       queryName, fileDialog, saveDialog,
@@ -337,7 +350,8 @@ export class QueryWindow extends React.Component<any,any> {
             showFile={() => this.setState({ fileDialog: true})}
             exec={this._execQuery}
             clear={this._clear}
-            accountName={this.state.accountName} />
+            accountName={this.state.accountName}
+            import={this.importing} />
           {
             queryName ?
               <div>
