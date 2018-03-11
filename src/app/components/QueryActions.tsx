@@ -1,8 +1,12 @@
 import * as React from 'react';
-import { BottomNavigation, BottomNavigationItem } from './index';
+import {
+  BottomNavigation, BottomNavigationItem, $, Api, Promise
+} from './index';
 import { Utils } from '../lib/utils';
 import * as fs from 'fs';
 import { ExportQuery } from './ExportQueryDialog';
+import { CsvUploadPopup } from './CsvUploadPopup';
+
 const styles: any = {
   nav: { backgroundColor: '#d7dddd', height: 75 },
   sqlIco: { margin: '10px 0 0 15px' },
@@ -11,12 +15,13 @@ const styles: any = {
 export class QueryActions extends React.Component<any,any> {
   state= {
     filename: null,
-    queries: null
+    queries: null,
+    queryUpload: false
   }
 
   render() {
     const { newQuery, save, clear, exec, showFile, accountName } = this.props,
-      { filename, queries } = this.state;
+      { filename, queries, queryUpload } = this.state;
     return (
       <div>
         <BottomNavigation style={styles.nav}>
@@ -77,7 +82,7 @@ export class QueryActions extends React.Component<any,any> {
               </span>
             }
             label='Import Queries'
-            onClick={() => {}}/>
+            onClick={() => this.setState({ queryUpload: true })}/>
           <BottomNavigationItem
             className='export-queries'
             icon={
@@ -93,8 +98,28 @@ export class QueryActions extends React.Component<any,any> {
               });
             }} />
         </BottomNavigation>
-        {filename && queries ? <ExportQuery {...this.state} /> : null }
+        {
+          filename && queries ?
+            <ExportQuery {...this.state} cancel={this.cancelExport} /> :
+          queryUpload ?
+            <CsvUploadPopup close={this.closeQueryUpload} upload={this.queryUpload} /> :
+            null
+        }
       </div>
     )
+  }
+
+  cancelExport = () => this.setState({ filename: null, queries: null });
+
+  closeQueryUpload = () => this.setState({ queryUpload: false });
+
+  queryUpload = () => {
+    this.closeQueryUpload();
+    let file = $('#csv-upload').prop('files')[0],
+      text = fs.readFileSync(file.path).toString();
+    const queries = JSON.parse(text);
+    return Promise.each(queries, query => {
+      return this.props.import(query);
+    });
   }
 }
