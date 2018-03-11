@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { Dialog, FlatButton } from './index';
+import { RaisedButton } from 'material-ui';
 
 const styles: any = {
   dialog: {
@@ -20,8 +21,11 @@ export function CsvUploadPopup(props: any) {
           primary={true}
           onClick={props.close} />
       ]}>
-      <input name='myFile' type='file' id='csv-upload'
-        onChange={props.upload} />
+      <RaisedButton label='Add'
+        containerElement='label'>
+        <input name='myFile' type='file' id='csv-upload'
+          onChange={props.upload} style={{display: 'none'}} />
+      </RaisedButton>
     </Dialog>
   )
 }
