@@ -1,7 +1,13 @@
 import * as React from 'react'
-import {Tabs, Tab, FontIcon, Dialog, FlatButton} from 'material-ui';
+import {
+  Tabs, Tab, FontIcon,
+  Dialog, FlatButton, Drawer,
+  RefreshIndicator, IconButton
+} from 'material-ui';
+import ReloadIcon from 'material-ui/svg-icons/av/loop';
 // Import Components
 import { Accounts, QueryWindow } from './index';
+import { Updator } from '../lib/update';
 
 export class App extends React.Component<any, any> {
   constructor() {
@@ -10,13 +16,30 @@ export class App extends React.Component<any, any> {
       tabValue: 'mainView',
       openAcct: false,
       tabIndx: 1,
-      accountName: null
+      accountName: null,
+      update: false,
+      updated: false
     };
-    this.handleClose = this.handleClose.bind(this);
-    this._tabSelect = this._tabSelect.bind(this);
   }
 
-  handleClose() {
+  componentDidMount() {
+    if(Updator.init()) {
+      this.handleUpdate();
+    }
+  }
+
+  handleUpdate = () => {
+    this.setState({ update: true });
+    Updator.startUpdate().then((updated) => {
+      if(updated) {
+        this.setState({ updated: true });
+      } else {
+        this.setState({ update: false });
+      }
+    })
+  }
+
+  handleClose = () => {
     this.setState({
       openAcct: false,
       tabIdx: 1,
@@ -24,7 +47,7 @@ export class App extends React.Component<any, any> {
     });
   }
 
-  _tabSelect(tabValue: string) {
+  _tabSelect = (tabValue: string) => {
     let saveQuery = false;
     if(tabValue === 'save') saveQuery = true;
     this.setState({
@@ -39,8 +62,42 @@ export class App extends React.Component<any, any> {
   }
 
   render() {
+    const { update, updated } = this.state;
     return (
       <div>
+        {
+          !update ? null :
+          <Drawer open={true} openSecondary={true}
+            width={285}
+            containerStyle={{
+              position: 'absolute',
+              top: 0,
+              height: 85,
+              borderRadius: '6px',
+              right: window.innerWidth / 3
+            }} >
+            <h3 style={{ marginLeft: '55px', width: 100 }} >
+              Updating...
+            </h3>
+            {
+              updated ?
+                <IconButton onClick={() => window.location.reload()}
+                  tooltip='reload'
+                  tooltipPosition='bottom-center'
+                  style={{
+                    position: 'absolute',
+                    top: 2,
+                    left: 200
+                  }} >
+                  <ReloadIcon />
+                </IconButton> :
+                <RefreshIndicator size={20} loadingColor='black'
+                  status='loading'
+                  top={15}
+                  left={200} />
+            }
+          </Drawer>
+        }
         <QueryWindow view={this.state.tabValue} accountName={this.state.accountName} />
         <div style={{ width: 280 }}>
           <Tabs className='tabs-container'
