@@ -66,7 +66,7 @@ export class Updator {
   };
 
   static localFileCompare(ghFiles) {
-    const ROOT_DIR = this.ROOT_DIR;
+    const ROOT_DIR = path.resolve(__dirname);
     let toUpdate: boolean = false;
     return Promise.each(ghFiles, ({name, content}) => {
       const localFile = fs.readFileSync(`${ROOT_DIR}/${name}`, 'utf-8');
@@ -79,7 +79,7 @@ export class Updator {
   };
 
   static update(ghFiles) {
-    const ROOT_DIR = this.ROOT_DIR;
+    const ROOT_DIR = path.resolve(__dirname);
     if(ghFiles.length > 0) {
       return Promise.each(ghFiles, ({ name, content}) =>
         fs.writeFileSync(`${ROOT_DIR}/${name}`, content, 'utf-8')
