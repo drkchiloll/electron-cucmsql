@@ -12,8 +12,8 @@ const styles: any = {
   sqlIco: { margin: '10px 0 0 15px' },
 };
 
-export class QueryActions extends React.Component<any,any> {
-  state= {
+export class QueryActions extends React.Component<any, any> {
+  state = {
     filename: null,
     queries: null,
     queryUpload: false
@@ -26,8 +26,11 @@ export class QueryActions extends React.Component<any,any> {
       <div>
         <BottomNavigation style={styles.nav}>
           <BottomNavigationItem label={<strong>{accountName}</strong>}
-            style={{ marginTop: '10px' }}
-            icon={<i className='fa fa-user-o fa-2x' />}
+            icon={
+              <span className='fa-stack fa-lg'>
+                <i className='fa fa-user fa-stack-2x' />
+              </span>
+            }
           />
           <BottomNavigationItem label='Execute SQL'
             icon={
@@ -82,7 +85,7 @@ export class QueryActions extends React.Component<any,any> {
               </span>
             }
             label='Import Queries'
-            onClick={() => this.setState({ queryUpload: true })}/>
+            onClick={() => this.setState({ queryUpload: true })} />
           <BottomNavigationItem
             className='export-queries'
             icon={
@@ -101,9 +104,9 @@ export class QueryActions extends React.Component<any,any> {
         {
           filename && queries ?
             <ExportQuery {...this.state} cancel={this.cancelExport} /> :
-          queryUpload ?
-            <CsvUploadPopup close={this.closeQueryUpload} upload={this.queryUpload} /> :
-            null
+            queryUpload ?
+              <CsvUploadPopup close={this.closeQueryUpload} upload={this.queryUpload} /> :
+              null
         }
       </div>
     )
