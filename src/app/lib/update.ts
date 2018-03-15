@@ -61,11 +61,12 @@ export class Updator {
     return Promise.map(ghFiles, (ghFile: any) =>
       axios.get(ghFile.uri).then(({ data }) =>
         Object.assign(ghFile, {
-          content: new Buffer(data.conent, 'base64').toString('utf-8')
+          content: new Buffer(data.content, 'base64').toString('utf-8')
         })))
   };
 
   static localFileCompare(ghFiles) {
+    const ROOT_DIR = this.ROOT_DIR;
     let toUpdate: boolean = false;
     return Promise.each(ghFiles, ({name, content}) => {
       const localFile = fs.readFileSync(`${this.ROOT_DIR}/${name}`, 'utf-8');
@@ -78,6 +79,7 @@ export class Updator {
   };
 
   static update(ghFiles) {
+    const ROOT_DIR = this.ROOT_DIR;
     if(ghFiles.length > 0) {
       return Promise.each(ghFiles, ({ name, content}) =>
         fs.writeFileSync(`${this.ROOT_DIR}/${name}`, content, 'utf-8')
