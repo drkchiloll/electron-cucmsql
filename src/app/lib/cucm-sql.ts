@@ -31,8 +31,14 @@ export class CucmSql {
       return [];
     }
     return Promise.map(rows, row => {
-      return Array.from(row.childNodes).reduce((o, child) => {
-        o[child.nodeName] = child.textContent;
+      return Array.from(row.childNodes).reduce((o, child: any) => {
+        if((child.nodeName.includes('date') || child.nodeName.includes('logintime')) &&
+            child.textContent) {
+          o[child.nodeName] = moment
+            .unix(child.textContent).format('MM/DD/YYYY h:mma')
+        } else {
+          o[child.nodeName] = child.textContent;
+        }
         return o;
       }, {})
     }).then((object:any) => {
@@ -113,11 +119,7 @@ export class CucmSql {
     return Promise.reduce(keys, (a, key) => {
       return Promise.map(data, (obj) => {
         let o = {};
-        if(key.includes('date')) {
-          o[key] = moment.unix(obj[key]).format('MM/DD/YYYY h:mm a');
-        } else {
-          o[key] = obj[key];
-        }
+        o[key] = obj[key];
         return o;
       }).then((arrs) => {
         a.push(arrs);
