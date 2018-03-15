@@ -57,17 +57,12 @@ export class Updator {
     return axios.get('/contents').then(({ data }) => data);
   };
 
-  static gitHubBlobDownload(uri) {
-    return axios.get(uri).then(({ data }) => ({
-      content: new Buffer(data.content, 'base64').toString('utf-8')
-    }));
-  };
-
   static processGhFiles(ghFiles: any[]) {
     return Promise.map(ghFiles, (ghFile: any) =>
-      this.gitHubBlobDownload(ghFile.uri).then(data =>
-        Object.assign(ghFile, data)
-      ));
+      axios.get(ghFile.uri).then(({ data }) =>
+        Object.assign(ghFile, {
+          content: new Buffer(data.conent, 'base64').toString('utf-8')
+        })))
   };
 
   static localFileCompare(ghFiles) {
