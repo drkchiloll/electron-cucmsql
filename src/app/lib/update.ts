@@ -69,7 +69,7 @@ export class Updator {
     const ROOT_DIR = this.ROOT_DIR;
     let toUpdate: boolean = false;
     return Promise.each(ghFiles, ({name, content}) => {
-      const localFile = fs.readFileSync(`${this.ROOT_DIR}/${name}`, 'utf-8');
+      const localFile = fs.readFileSync(`${ROOT_DIR}/${name}`, 'utf-8');
       toUpdate = localFile != content ? true : false;
       return;
     }).then(() => {
@@ -82,7 +82,7 @@ export class Updator {
     const ROOT_DIR = this.ROOT_DIR;
     if(ghFiles.length > 0) {
       return Promise.each(ghFiles, ({ name, content}) =>
-        fs.writeFileSync(`${this.ROOT_DIR}/${name}`, content, 'utf-8')
+        fs.writeFileSync(`${ROOT_DIR}/${name}`, content, 'utf-8')
       ).then(() => true);
     } else {
       return false;
