@@ -18,11 +18,13 @@ export class App extends React.Component<any, any> {
       tabIndx: 1,
       accountName: null,
       update: false,
-      updated: false
+      updated: false,
+      message: 'Updating...'
     };
   }
 
   componentDidMount() {
+    console.log(Updator.init());
     if(Updator.init()) {
       this.handleUpdate();
     }
@@ -32,7 +34,10 @@ export class App extends React.Component<any, any> {
     this.setState({ update: true });
     Updator.startUpdate().then((updated) => {
       if(updated) {
-        this.setState({ updated: true });
+        this.setState({
+          updated: true,
+          message: 'Done..Reload'
+        });
       } else {
         this.setState({ update: false });
       }
@@ -62,7 +67,7 @@ export class App extends React.Component<any, any> {
   }
 
   render() {
-    const { update, updated } = this.state;
+    const { update, updated, message } = this.state;
     return (
       <div>
         {
@@ -77,7 +82,7 @@ export class App extends React.Component<any, any> {
               right: window.innerWidth / 3
             }} >
             <h3 style={{ marginLeft: '55px', width: 100 }} >
-              Updating...
+              { message }
             </h3>
             {
               updated ?
