@@ -30,8 +30,7 @@ export class Updator {
     this.willUpdate = this.ENVIRONMENT === 'development' ? false :
       this.ENVIRONMENT === 'production' && !this.lastUpdated ? true :
       (this.ENVIRONMENT === 'production' &&
-        (moment().isAfter(this.lastUpdated) &&
-          this.lastUpdated.add(1,'d').isSameOrAfter(moment()))) ? true :
+        moment().isSameOrAfter(this.lastUpdated.add(1, 'd')) ) ? true :
       false;
     return this.willUpdate;
   };
@@ -70,8 +69,8 @@ export class Updator {
     let toUpdate: boolean = false;
     return Promise.each(ghFiles, ({name, content}) => {
       const localFile = fs.readFileSync(`${ROOT_DIR}/${name}`, 'utf-8');
-      toUpdate = localFile != content ? true : false;
-      return;
+      if(toUpdate) return;
+      else toUpdate = localFile != content ? true : false;
     }).then(() => {
       if(toUpdate) return ghFiles;
       else return [];
