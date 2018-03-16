@@ -5,10 +5,11 @@
   "main": "./dist/main.bundle.js",
   "scripts": {
     "clean": "cd dist && rm app.bundle.js app.bundle.js.map main.bundle.js main.bundle.js.map && cd ..",
-    "build:dev": "NODE_ENV=development node_modules/.bin/webpack --watch --progress --profile",
-    "build:dist": "NODE_ENV=production node_modules/.bin/webpack --progress --colors",
+    "build:dev": "webpack --mode development --watch --progress --profile",
+    "build:dist": "node_modules/.bin/webpack --mode production --progress --colors",
     "start": "electron .",
-    "package": "node_modules/.bin/electron-packager ./ CUCMSequelizer --platform=darwin --arch=x64 --prune=true --ignore=src/app --ignore=node_modules/@types --ignore=node_modules/electron* --app-version=1.0.1 --icon ./resources/sequelizer.icns"
+    "package:macos": "node_modules/.bin/electron-packager ./ CUCMSequelizer --platform=darwin --arch=x64 --prune=true --ignore=src/app --ignore=node_modules/@types --ignore=node_modules/electron* --app-version=1.0.2 --icon ./resources/sequelizer.icns",
+    "package:win64": "electron-packager ./ CUCMSequelizer --platform=win32 --arch=x64 --prune=true --ignore=src/app --ignore=node_modules/@types --ignore=node_modules/electron* --app-version=1.0.2 --icon ./resources/sequelizer.ico"
   },
   "dependencies": {},
   "devDependencies": {
@@ -45,7 +46,6 @@
     "react-dom": "^16.2.0",
     "request": "^2.79.0",
     "style-loader": "^0.13.1",
-    "systeminformation": "^3.17.3",
     "typescript": "^2.3.4",
     "uglifyjs-webpack-plugin": "^1.2.2",
     "url-loader": "^0.5.6",
