@@ -126,7 +126,7 @@ export class QueryWindow extends React.Component<any,any> {
     }
     selectedStatement = '';
     selectedQuery = queries.length + 1;
-    this.setState({ selectedStatement, selectedQuery });
+    this.setState({ selectedStatement, selectedQuery, queryName: ''});
     this.state.editor.focus();
   }
 
@@ -201,7 +201,7 @@ export class QueryWindow extends React.Component<any,any> {
         old = queries[selectedQuery],
         oldQuery;
     if(!old) {
-      return this.setState({ saveDialog: true, queryName: '' });
+      return this.setState({ saveDialog: true });
     } else {
       oldQuery = old.query;
       if(current !== oldQuery) {
@@ -334,7 +334,7 @@ export class QueryWindow extends React.Component<any,any> {
     let {
       queryName, fileDialog, saveDialog,
       aceFocus, queries, selectedQuery, openTable,
-      fontSize, editor, drawerWidth
+      fontSize, editor, drawerWidth, queryApi
     } = this.state;
     return (
       <div>
@@ -352,31 +352,41 @@ export class QueryWindow extends React.Component<any,any> {
             clear={this._clear}
             accountName={this.state.accountName}
             import={this.importing} />
-          {
-            queryName ?
-              <div>
-                <hr style={{margin:0, padding:0}}/>
-                <TextField
-                  id='qname'
-                  underlineShow={false}
-                  style={{ marginLeft: 10, width: 350, fontSize: '98%' }}
-                  value={queryName}
-                  onChange={(e, val) => {
-                    this.setState({ queryName: val });
-                  }} />
-                <IconButton tooltip={'Delete Query'} iconClassName='fa fa-ban fa-lg'
-                  tooltipPosition='top-center' />
-                <IconButton tooltip={'Modify Query Name'} iconClassName='fa fa-floppy-o fa-lg'
-                  tooltipPosition='top-center'
-                  onClick={() => {
-                    const query = queries[selectedQuery];
-                    queries[selectedQuery].name = queryName;
-                    this.state.queryApi.update(query).then(() =>
-                      this.setState({ queries }));
-                  }} />
-              </div> :
-              null
-          }
+          <hr style={{margin:0, padding:0}}/>
+          <TextField
+            id='qname'
+            underlineShow={false}
+            style={{ marginLeft: 10, width: 350, fontSize: '98%' }}
+            hintText='New Query'
+            value={queryName || ''}
+            onChange={(e, val) => {
+              this.setState({ queryName: val });
+            }} />
+          <IconButton tooltip={'Delete Query'} iconClassName='fa fa-ban fa-lg'
+            tooltipPosition='top-center'
+            onClick={() => {
+              const query = queries[selectedQuery];
+              queryApi.remove(query._id);
+              queries.splice(selectedQuery, 1);
+              let newQuery = selectedQuery === 0 ? queries[selectedQuery+1] :
+                queries[selectedQuery-1];
+              let update: any = {
+                queries,
+                selectedQuery: selectedQuery===0 ? ++selectedQuery : selectedQuery-1,
+                query: newQuery,
+                queryName: newQuery.name,
+                selectedStatement: newQuery.query
+              }
+              this.setState(update);
+            }} />
+          <IconButton tooltip={'Modify Query Name'} iconClassName='fa fa-floppy-o fa-lg'
+            tooltipPosition='top-center'
+            onClick={() => {
+              const query = queries[selectedQuery];
+              queries[selectedQuery].name = queryName;
+              this.state.queryApi.update(query).then(() =>
+                this.setState({ queries }));
+            }} />
           <Editor 
             init={(editor) => this.setState({ editor })}
             change={(selectedStatement) =>
