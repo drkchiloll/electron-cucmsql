@@ -60,7 +60,16 @@ let menuTemplate:any = [{
     label: 'Learn More',
     click () { require('electron').shell.openExternal('http://electron.atom.io') }
   }]
-}]
+}];
+
+if(process.platform === 'win32') {
+  menuTemplate[menuTemplate.length - 1].submenu.push({
+    label: 'Check for Updates...',
+    click(item: any, focusedWindow: any) {
+      focusedWindow.webContents.send('update');
+    }
+  });
+}
 
 if(process.platform === 'darwin') {
   const name = app.getName()
@@ -68,6 +77,11 @@ if(process.platform === 'darwin') {
     label: name,
     submenu: [{
       role: 'about'
+    }, {
+      label: 'Check for Updates...',
+      click(item: any, focusedWindow: any) {
+        focusedWindow.webContents.send('udpate');
+      }
     }, {
       type: 'separator'
     }, {
