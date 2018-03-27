@@ -17,6 +17,10 @@ class CucmSqlQueryTool {
       'window-all-closed',
       this._onWindowAllClosed
     );
+    this.app.setAboutPanelOptions({
+      applicationVersion: '1.0.3',
+      version: '1.0.3'
+    });
   }
 
   _onReady() {
@@ -27,16 +31,13 @@ class CucmSqlQueryTool {
       minHeight:968,
       acceptFirstMouse:true
     });
-
     this.mainWindow.loadURL(`file://${__dirname}/index.html`);
     this.mainWindow.on('closed', () => this.mainWindow = null);
     Menu.setApplicationMenu(AppMenu);
   }
 
   _onWindowAllClosed() {
-    if(process.platform != 'darwin') {
-      app.quit();
-    }
+    app.quit();
   }
 }
 
