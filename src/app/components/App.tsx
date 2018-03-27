@@ -5,9 +5,11 @@ import {
   RefreshIndicator, IconButton
 } from 'material-ui';
 import ReloadIcon from 'material-ui/svg-icons/av/loop';
+import CloseIcon from 'material-ui/svg-icons/navigation/close';
 // Import Components
 import { Accounts, QueryWindow } from './index';
 import { Updator } from '../lib/update';
+import { ipcRenderer } from 'electron';
 
 export class App extends React.Component<any, any> {
   constructor() {
@@ -19,27 +21,31 @@ export class App extends React.Component<any, any> {
       accountName: null,
       update: false,
       updated: false,
+      didUpdate: false,
       message: 'Updating...'
     };
   }
 
   componentDidMount() {
-    console.log(Updator.init());
-    if(Updator.init()) {
-      this.handleUpdate();
-    }
+    ipcRenderer.on('update', this.handleUpdate);
   }
 
   handleUpdate = () => {
+    Updator.init();
     this.setState({ update: true });
-    Updator.startUpdate().then((updated) => {
-      if(updated) {
+    Updator.startUpdate().then((didUpdate) => {
+      if(didUpdate) {
         this.setState({
           updated: true,
-          message: 'Done..Reload'
+          didUpdate: true,
+          message: 'Done..Reload',
         });
       } else {
-        this.setState({ update: false });
+        this.setState({
+          updated: true,
+          didUpdate: false,
+          message: 'You have the latest Version'
+        });
       }
     })
   }
@@ -67,42 +73,56 @@ export class App extends React.Component<any, any> {
   }
 
   render() {
-    const { update, updated, message } = this.state;
+    const { update, updated, message, didUpdate } = this.state;
     return (
       <div>
-        {
-          !update ? null :
-          <Drawer open={true} openSecondary={true}
-            width={285}
-            containerStyle={{
-              position: 'absolute',
-              top: 0,
-              height: 85,
-              borderRadius: '6px',
-              right: window.innerWidth / 3
-            }} >
-            <h3 style={{ marginLeft: '55px', width: 100 }} >
-              { message }
-            </h3>
-            {
-              updated ?
-                <IconButton onClick={() => window.location.reload()}
-                  tooltip='reload'
-                  tooltipPosition='bottom-center'
-                  style={{
-                    position: 'absolute',
-                    top: 2,
-                    left: 200
-                  }} >
-                  <ReloadIcon />
-                </IconButton> :
-                <RefreshIndicator size={20} loadingColor='black'
-                  status='loading'
-                  top={15}
-                  left={200} />
-            }
-          </Drawer>
-        }
+        <Drawer open={update} openSecondary={true}
+          width={375}
+          containerStyle={{
+            position: 'absolute',
+            top: 0,
+            height: 85,
+            border: '1px solid black',
+            borderRadius: '6px',
+            right: update ? window.innerWidth / 2.8 : -1
+          }} >
+          <h4 style={{ marginLeft: '35px', width: 195 }} >
+            { message }
+          </h4>
+          {
+            updated && didUpdate ?
+              <IconButton onClick={() => window.location.reload()}
+                tooltip='reload'
+                tooltipPosition='bottom-center'
+                tooltipStyles={{ top: 25 }}
+                style={{
+                  position: 'absolute',
+                  top: 8,
+                  left: 270
+                }} >
+                <ReloadIcon />
+              </IconButton> :
+            !updated ?
+              <RefreshIndicator size={20} loadingColor='black'
+                status='loading'
+                top={18}
+                left={260} /> :
+            updated && !didUpdate ?
+              <IconButton onClick={this.closeUpdator}
+                style={{
+                  position: 'absolute',
+                  top: 5,
+                  right: 10
+                }}
+                iconStyle={{ height: 20, width: 20 }}
+                tooltip='close'
+                tooltipPosition='bottom-left'
+                tooltipStyles={{ top: 25 }} >
+                <CloseIcon />
+              </IconButton> :
+              null
+          }
+        </Drawer>
         <QueryWindow view={this.state.tabValue} accountName={this.state.accountName} />
         <div style={{ width: 280 }}>
           <Tabs className='tabs-container'
@@ -141,5 +161,12 @@ export class App extends React.Component<any, any> {
         </div>
       </div>
     );
+  }
+  closeUpdator = () => {
+    this.setState({
+      update: false,
+      updated: false,
+      didUpdate: false
+    })
   }
 }
