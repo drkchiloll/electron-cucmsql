@@ -7,7 +7,7 @@
     "clean": "cd dist && rm app.bundle.js app.bundle.js.map main.bundle.js main.bundle.js.map && cd ..",
     "build:dev": "webpack --mode development --watch --progress --profile",
     "build:dist": "node_modules/.bin/webpack --mode production --progress --colors && rm dist/app.bundle.js.map && rm dist/main.bundle.js.map",
-    "start": "electron .",
+    "start": "node_modules/.bin/electron .",
     "package:macos": "node_modules/.bin/electron-packager ./ CUCMSequelizer --platform=darwin --arch=x64 --prune=true --ignore=src/app --ignore=node_modules/@types --ignore=node_modules/electron* --app-version=1.0.4 --icon ./resources/sequelizer.icns",
     "package:win64": "electron-packager ./ CUCMSequelizer --platform=win32 --arch=x64 --prune=true --ignore=src/app --ignore=node_modules/@types --ignore=node_modules/electron* --app-version=1.0.2 --icon ./resources/sequelizer.ico"
   },
