@@ -8,46 +8,43 @@ import ReloadIcon from 'material-ui/svg-icons/av/loop';
 import CloseIcon from 'material-ui/svg-icons/navigation/close';
 // Import Components
 import { Accounts, QueryWindow } from './index';
-import { Updator } from '../lib/update';
+import { startUpdate, Updator } from '../lib/updator';
 import { ipcRenderer } from 'electron';
 
 export class App extends React.Component<any, any> {
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
     this.state = {
       tabValue: 'mainView',
       openAcct: false,
       tabIndx: 1,
       accountName: null,
       update: false,
+      updateDrawer: false,
       updated: false,
       didUpdate: false,
       message: 'Updating...'
     };
-  }
 
-  componentDidMount() {
     ipcRenderer.on('update', this.handleUpdate);
   }
 
-  handleUpdate = () => {
-    Updator.init();
+  handleUpdate = (event, version) => {
     this.setState({ update: true });
-    Updator.startUpdate().then((didUpdate) => {
+    setTimeout(() => this.setState({updateDrawer: true}), 0);
+    let message: string;
+    startUpdate().then(didUpdate => {
       if(didUpdate) {
-        this.setState({
-          updated: true,
-          didUpdate: true,
-          message: 'Done..Reload',
-        });
+        message = `You have been updated to: ${Updator.version}`;
       } else {
-        this.setState({
-          updated: true,
-          didUpdate: false,
-          message: 'You have the latest Version'
-        });
+        message = 'There are currently no updates available.';
       }
-    })
+      this.setState({
+        updated: true,
+        didUpdate,
+        message
+      });
+    });
   }
 
   handleClose = () => {
@@ -73,63 +70,70 @@ export class App extends React.Component<any, any> {
   }
 
   render() {
-    const { update, updated, message, didUpdate } = this.state;
+    const {
+      update, updated, message,
+      didUpdate, updateDrawer,
+      accountName, tabValue,
+      tabIndx, openAcct
+    } = this.state;
     return (
       <div>
-        <Drawer open={update} openSecondary={true}
-          width={375}
-          containerStyle={{
-            position: 'absolute',
-            top: 0,
-            height: 85,
-            border: '1px solid black',
-            borderRadius: '6px',
-            right: update ? window.innerWidth / 2.8 : -1
-          }} >
-          <h4 style={{ marginLeft: '35px', width: 195 }} >
-            { message }
-          </h4>
-          {
-            updated && didUpdate ?
-              <IconButton onClick={() => window.location.reload()}
-                tooltip='reload'
-                tooltipPosition='bottom-center'
-                tooltipStyles={{ top: 25 }}
-                style={{
-                  position: 'absolute',
-                  top: 8,
-                  left: 270
-                }} >
-                <ReloadIcon />
-              </IconButton> :
-            !updated ?
-              <RefreshIndicator size={20} loadingColor='black'
-                status='loading'
-                top={18}
-                left={260} /> :
-            updated && !didUpdate ?
-              <IconButton onClick={this.closeUpdator}
-                style={{
-                  position: 'absolute',
-                  top: 5,
-                  right: 10
-                }}
-                iconStyle={{ height: 20, width: 20 }}
-                tooltip='close'
-                tooltipPosition='bottom-left'
-                tooltipStyles={{ top: 25 }} >
-                <CloseIcon />
-              </IconButton> :
-              null
-          }
-        </Drawer>
-        <QueryWindow view={this.state.tabValue} accountName={this.state.accountName} />
+        <div style={{display: update ? 'inline-block' : 'none '}}>
+          <Drawer open={updateDrawer} openSecondary={true}
+            width={475}
+            containerStyle={{
+              position: 'absolute',
+              top: 0,
+              height: 80,
+              border: '1px solid black',
+              borderRadius: '6px',
+              right: update ? window.innerWidth / 3.3 : -1
+            }} >
+            <h4 style={{ marginLeft: '35px', width: 300 }} >
+              { message }
+            </h4>
+            {
+              updated && didUpdate ?
+                <IconButton onClick={() => window.location.reload()}
+                  tooltip='reload'
+                  tooltipPosition='bottom-center'
+                  tooltipStyles={{ top: 25 }}
+                  style={{
+                    position: 'absolute',
+                    top: 3,
+                    left: 350
+                  }} >
+                  <ReloadIcon style={{height: 20, width: 20}} />
+                </IconButton> :
+              !updated ?
+                <RefreshIndicator size={20} loadingColor='black'
+                  status='loading'
+                  top={18}
+                  left={420} /> :
+              updated && !didUpdate ?
+                <IconButton onClick={this.closeUpdator}
+                  style={{
+                    position: 'absolute',
+                    top: 3,
+                    right: 30
+                  }}
+                  iconStyle={{ height: 20, width: 20 }}
+                  tooltip='close'
+                  tooltipPosition='bottom-left'
+                  tooltipStyles={{ top: 25 }} >
+                  <CloseIcon color='red' />
+                </IconButton> :
+                null
+            }
+          </Drawer>
+        </div>
+        <QueryWindow view={tabValue} accountName={accountName} />
         <div style={{ width: 280 }}>
           <Tabs className='tabs-container'
             inkBarStyle={{ background: 'rgb(140,20,17)' }}
             tabItemContainerStyle={{ width: 280 }}
-            initialSelectedIndex={this.state.tabIndx}
-            value={this.state.tabValue}
+            initialSelectedIndex={tabIndx}
+            value={tabValue}
             onChange={this._tabSelect}>
             <Tab
               icon={
@@ -141,9 +145,10 @@ export class App extends React.Component<any, any> {
               label='Accounts'
               value='accts'>
               <Accounts
-                openDia={this.state.openAcct}
+                openDia={openAcct}
                 acctClose={this.handleClose}
-                accountName={(name) => this.setState({ accountName: name })} />
+                accountName={(name) =>
+                  this.setState({ accountName: name })} />
             </Tab>
             <Tab
               style={this.styles.font}
@@ -166,7 +171,8 @@ export class App extends React.Component<any, any> {
     this.setState({
       update: false,
       updated: false,
-      didUpdate: false
+      didUpdate: false,
+      updateDrawer: false
     })
   }
 }
