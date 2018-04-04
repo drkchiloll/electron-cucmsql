@@ -1,4 +1,4 @@
-import { app, Menu } from 'electron';
+import { app, Menu, BrowserWindow } from 'electron';
 
 let menuTemplate:any = [{
   label: 'Edit',
@@ -26,7 +26,7 @@ let menuTemplate:any = [{
   submenu: [{
     label: 'Reload',
     accelerator: 'CmdOrCtrl+R',
-    click(item:any, focusedWindow:any) {
+    click(item:any, focusedWindow:BrowserWindow) {
       if(focusedWindow) focusedWindow.reload()
     }
   }, {
@@ -66,7 +66,7 @@ if(process.platform === 'win32') {
   menuTemplate[menuTemplate.length - 1].submenu.push({
     label: 'Check for Updates...',
     click(item: any, focusedWindow: any) {
-      focusedWindow.webContents.send('update');
+      focusedWindow.webContents.send('update', 'message');
     }
   });
 }
@@ -80,7 +80,7 @@ if(process.platform === 'darwin') {
     }, {
       label: 'Check for Updates...',
       click(item: any, focusedWindow: any) {
-        focusedWindow.webContents.send('udpate');
+        focusedWindow.webContents.send('update', app.getVersion());
       }
     }, {
       type: 'separator'
