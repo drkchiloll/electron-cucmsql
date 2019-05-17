@@ -1,10 +1,9 @@
 import {
-  React, $, Api, CucmSql, cucmHelper,
-  moment,
+  React, $, cucmHelper,
   Drawer, MenuItem, Dialog, FlatButton,
   BottomNavigation, BottomNavigationItem,
   FontIcon, Paper, Divider, TextField,
-  Subheader, List, ListItem, SelectableList,
+  Subheader, ListItem, SelectableList,
   Snackbar, SelectField, Utils
 } from './index';
 
@@ -85,46 +84,63 @@ export class Accounts extends React.Component<any,any> {
     // });
   }
 
+  close = () => {
+    let accounts = Utils.getAccounts();
+    let selectedAcct = accounts.findIndex(a => a.selected);
+    let account = accounts[selectedAcct];
+    this.setState({ account, selectedAcct, accounts });
+    this.props.acctClose();
+  }
+
+  flatActions = () => {
+    const labels = ['Save', 'Test', 'Close'];
+    return labels.map(label => {
+      return (
+        <FlatButton
+          label={label}
+          icon={
+            <FontIcon
+              className={(() => {
+                let prefix = 'fa fa';
+                if(label === 'Save')
+                  return `${prefix}-hdd-o`;
+                else if(label === 'Test')
+                  return `${prefix}-plug`;
+                else return `${prefix}-window-close-o`;
+              })()}
+              color={(() => {
+                if(label === 'Test') {
+                  if(this.state.account && this.state.account.status) {
+                    return this.state.account.status
+                  } else {
+                    return 'red';
+                  }
+                }
+              })()}
+            />
+          }
+          primary={true}
+          keyboardFocused={(() => {
+            if(label === 'Save') return true;
+            return false;
+          })()}
+          onClick={(() => {
+            return label === 'Save' ? this.save :
+              label === 'Test' ? this.testAccount :
+              this.close
+          })()}
+        />
+      );
+    }) 
+  }
+
   render() {
-    let { accounts, account, selectedAcct } = this.state;
-    let testColor:string;
-    if(this.state.account && this.state.account.status) {
-      testColor = this.state.account.status;
-    } else {
-      testColor = 'red';
-    }
+    let { accounts, selectedAcct } = this.state;
     const style = { marginLeft: 20 };
-    const actions = [
-      <FlatButton
-        label='Save'
-        icon={<FontIcon className='fa fa-hdd-o' />}
-        primary={true}
-        keyboardFocused={true}
-        onClick={this.save}
-      />,
-      <FlatButton
-        label='Test'
-        icon={<FontIcon color={testColor} className='fa fa-plug' />}
-        primary={true}
-        onClick={this.testAccount}
-      />,
-      <FlatButton
-        label='Close'
-        icon={<FontIcon className='fa fa-window-close-o'/>}
-        primary={true}
-        onClick={() => {
-          let accounts = Utils.getAccounts();
-          let selectedAcct = accounts.findIndex(a => a.selected);
-          let account = accounts[selectedAcct];
-          this.setState({ account, selectedAcct, accounts });
-          this.props.acctClose();
-        }}
-      />
-    ];
     return (
       <div>
         <Dialog
-          actions={actions}
+          actions={this.flatActions()}
           modal={false}
           open={this.props.openDia}
           onRequestClose={this.props.acctClose}>
