@@ -135,6 +135,7 @@ export class Accounts extends React.Component<any,any> {
   }
 
   accountForm = account => {
+    let { accounts } = this.state;
     const formProps = [{
       name: 'name',
       text: 'Connection Name',
@@ -167,13 +168,22 @@ export class Accounts extends React.Component<any,any> {
               floatingLabelText='UCM Version'
               style={{ marginLeft: 20 }}
               value={account.version}
-              onChange={(e,i,val) => {
+              onChange={(e,idx,val) => {
                 account.version = val
-                // this.setState({ accounts });
+                this.setState({ accounts });
               }} >
-                {['8.0','8.5','9.0','9.1','10.0','10.5','11.0','11.5','12.0'].map((ver,i) => {
-                  return <MenuItem value={ver} key={`version_${i}`} primaryText={ver} />
-                })}
+                {
+                  ['8.0','8.5','9.0','9.1','10.0','10.5','11.0','11.5','12.0']
+                    .map((ver,indx) => {
+                      return (
+                        <MenuItem
+                          value={ver}
+                          key={`version_${indx}`}
+                          primaryText={ver}
+                        />
+                      );
+                    })
+                }
             </SelectField>
           </div>
         )
