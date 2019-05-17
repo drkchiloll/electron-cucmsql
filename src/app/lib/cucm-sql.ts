@@ -210,3 +210,27 @@ export interface ICucmSql {
   host:string;
   version:string;
 }
+
+export const cucmHelper = (() => {
+  const helper: any = {};
+  helper.test = params => {
+    const { accounts, selectedAcct } = params,
+      account: ICucmSql = accounts[selectedAcct],
+      cucm = new CucmSql(account),
+      statement = cucm.testAxlQuery;
+    return cucm.query(statement, true).then((resp: any) => {
+      account['lastTested'] = moment().toDate();
+      if(resp && resp instanceof Array) {
+        account['status'] = 'green';
+      } else if(resp.error) {
+        account['status'] = 'red';
+      }
+      return account;
+    }).catch((err: any) => {
+      account['status'] = 'red';
+      alert(err.error);
+      return account;
+    });
+  };
+  return helper;
+})();

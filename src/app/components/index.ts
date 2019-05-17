@@ -5,7 +5,7 @@ import * as Promise from 'bluebird';
 import AceEditor from 'react-ace';
 import { Api } from '../lib/api';
 import { Utils } from '../lib/utils';
-import { CucmSql } from '../lib/cucm-sql';
+import { CucmSql, cucmHelper } from '../lib/cucm-sql';
 import { editorConfig } from '../vendor';
 import * as $ from 'jquery';
 import * as moment from 'moment';
@@ -46,7 +46,7 @@ export {
   indigo900, blue300, red300, SvgIconErrorOutline,
   IconButton, FontIcon, Snackbar, LinearProgress,
   CsvCreator, SelectableList, fs, moment, indigo50,
-  MenuItem, SelectField, Utils
+  MenuItem, SelectField, Utils, cucmHelper
 };
 
 // Component Exports

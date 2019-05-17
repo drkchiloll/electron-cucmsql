@@ -1,5 +1,6 @@
 import {
-  React, $, Api, CucmSql, moment, Promise,
+  React, $, Api, CucmSql, cucmHelper,
+  moment,
   Drawer, MenuItem, Dialog, FlatButton,
   BottomNavigation, BottomNavigationItem,
   FontIcon, Paper, Divider, TextField,
@@ -28,13 +29,13 @@ export class Accounts extends React.Component<any,any> {
     this.setState({ accounts, selectedAcct, account: accounts[selectedAcct] });
   }
 
-  emitAccountName = (name) => this.props.accountName(name);
+  emitAccountName = (name: string) => this.props.accountName(name);
 
-  handleAccountsToggle = () => {
-    this.setState({ openAccounts: !this.state.openAccounts });
-  }
+  handleAccountsToggle = () => this.setState({
+    openAccounts: !this.state.openAccounts
+  });
 
-  changeAcctValues = (e, val) => {
+  changeAcctValues = (e: any, val: string) => {
     let { name } = e.target,
         accounts = this.state.accounts,
         selectedAcct = this.state.selectedAcct;
@@ -54,28 +55,34 @@ export class Accounts extends React.Component<any,any> {
   }
 
   testAccount = () => {
-    let { accounts, selectedAcct } = this.state,
-      account = accounts[selectedAcct],
-      { host, version, username, password } = account;
-    let cucm = new CucmSql({ host, version, username, password }),
-      statement = cucm.testAxlQuery;
-    cucm.query(statement, true).then((resp) => {
-      account['lastTested'] = moment().toDate();
-      if(resp && resp instanceof Array) {
-        account['status'] = 'green';
-      } else if(resp.error) {
-        account['status'] = 'red';
-      }
-      Utils.setAccounts(accounts);
+    let { accounts, selectedAcct } = this.state;
+    return cucmHelper.test({
+      accounts, selectedAcct
+    }).then((account) => {
+      Utils.setAccounts(account);
       this.setState({ account });
-    }, (err) => {
-      alert(err.error);
-      account['status'] = 'red';
-      Utils.setAccounts(accounts);
-      return;
-    }).then(() => {
-      this.setState({ account });
-    });
+    })
+    //   account = accounts[selectedAcct],
+    //   { host, version, username, password } = account;
+    // let cucm = new CucmSql({ host, version, username, password }),
+    //   statement = cucm.testAxlQuery;
+    // cucm.query(statement, true).then((resp) => {
+    //   account['lastTested'] = moment().toDate();
+    //   if(resp && resp instanceof Array) {
+    //     account['status'] = 'green';
+    //   } else if(resp.error) {
+    //     account['status'] = 'red';
+    //   }
+    //   Utils.setAccounts(accounts);
+    //   this.setState({ account });
+    // }, (err) => {
+    //   alert(err.error);
+    //   account['status'] = 'red';
+    //   Utils.setAccounts(accounts);
+    //   return;
+    // }).then(() => {
+    //   this.setState({ account });
+    // });
   }
 
   render() {
