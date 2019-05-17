@@ -134,6 +134,74 @@ export class Accounts extends React.Component<any,any> {
     }) 
   }
 
+  accountForm = account => {
+    const formProps = [{
+      name: 'name',
+      text: 'Connection Name',
+      label: 'Account Name',
+      value: account.name,
+    }, {
+      name: 'host',
+      text: 'Hostname Or IP Address',
+      label: 'CUCM Server Address',
+      value: account.host
+    }, 
+    null,
+    {
+      name: 'username',
+      text: 'Username',
+      label: 'Username',
+      value: account.username
+    },{
+      name: 'password',
+      text: 'password',
+      label: 'Password',
+      value: account.password
+    }, null];
+    return formProps.map((prop, i) => {
+      if(!prop && (i > 1 && i < 4)) {
+        return (
+          <div key={i}>
+            <Divider />
+            <SelectField
+              floatingLabelText='UCM Version'
+              style={{ marginLeft: 20 }}
+              value={account.version}
+              onChange={(e,i,val) => {
+                account.version = val
+                // this.setState({ accounts });
+              }} >
+                {['8.0','8.5','9.0','9.1','10.0','10.5','11.0','11.5','12.0'].map((ver,i) => {
+                  return <MenuItem value={ver} key={`version_${i}`} primaryText={ver} />
+                })}
+            </SelectField>
+          </div>
+        )
+      } else if(!prop) {
+        return <Divider key={i} />
+      } else {
+        return (
+          <TextField
+            key={i}
+            type={(() => {
+              if(account.name === 'password')
+                return 'password';
+              else return 'text'
+            })()}
+            hintText={prop.text}
+            style={{ marginLeft: 20 }}
+            name={prop.name}
+            underlineShow={true}
+            floatingLabelFixed={true}
+            floatingLabelText={prop.label}
+            value={prop.value}
+            onChange={this.changeAcctValues}
+          />
+        )
+      }
+    })
+  };
+
   render() {
     let { accounts, selectedAcct } = this.state;
     const style = { marginLeft: 20 };
@@ -245,56 +313,7 @@ export class Accounts extends React.Component<any,any> {
           </div>
           <div style={{marginLeft:'235px'}}>
             <Paper zDepth={2}>
-              <TextField hintText="Connection Name"
-                style={style}
-                name='name'
-                underlineShow={true}
-                floatingLabelFixed={true}
-                floatingLabelText='Account Name'
-                value={accounts[selectedAcct].name}
-                onChange={this.changeAcctValues}
-                errorText='' />
-              <TextField
-                hintText="Hostname/IP Address"
-                style={style}
-                name='host'
-                underlineShow={true}
-                floatingLabelFixed={true}
-                floatingLabelText='CUCM Server'
-                value={accounts[selectedAcct].host}
-                onChange={this.changeAcctValues} />
-              <Divider />
-              <SelectField floatingLabelText='UCM Version'
-                style={style}
-                value={accounts[selectedAcct].version}
-                onChange={(e,i,val) => {
-                  accounts[selectedAcct].version = val
-                  this.setState({ accounts });
-                }} >
-                {['8.0','8.5','9.0','9.1','10.0','10.5','11.0','11.5','12.0'].map((ver,i) => {
-                  return <MenuItem value={ver} key={`version_${i}`} primaryText={ver} />
-                })}
-              </SelectField>
-              <TextField
-                hintText="user_name"
-                style={style}
-                name='username'
-                underlineShow={true}
-                floatingLabelFixed={true}
-                floatingLabelText='UserName'
-                value={accounts[selectedAcct].username}
-                onChange={this.changeAcctValues} />
-              <TextField
-                type='password'
-                hintText="password"
-                name='password'
-                style={style}
-                underlineShow={true}
-                floatingLabelFixed={true}
-                floatingLabelText='Password'
-                value={accounts[selectedAcct].password}
-                onChange={this.changeAcctValues} />
-              <Divider />
+              { this.accountForm(accounts[selectedAcct]) }
             </Paper>
           </div>
         </Dialog>
