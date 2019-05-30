@@ -1,7 +1,6 @@
 import * as React from 'react'
 import {
-  Tabs, Tab, FontIcon,
-  Dialog, FlatButton, Drawer,
+  Tabs, Tab, Drawer,
   RefreshIndicator, IconButton
 } from 'material-ui';
 import ReloadIcon from 'material-ui/svg-icons/av/loop';

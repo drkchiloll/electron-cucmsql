@@ -20,7 +20,7 @@ export class QueryActions extends React.Component<any, any> {
   }
 
   render() {
-    const { newQuery, save, clear, exec, showFile, accountName } = this.props,
+    const { newQuery, save, exec, showFile, accountName } = this.props,
       { filename, queries, queryUpload } = this.state;
     return (
       <div>

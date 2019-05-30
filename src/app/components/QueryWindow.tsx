@@ -1,16 +1,10 @@
 import {
-  React, ReactDOM, brace,
-  Promise, AceEditor, Api, CucmSql,
-  editorConfig, $, Table, Column, Cell,
-  Paper, TextField, Divider, Drawer,
-  Subheader, List, ListItem, makeSelectable,
-  BottomNavigation, BottomNavigationItem,
-  Toggle, Dialog, FlatButton, Chip, Avatar,
-  indigo900, blue300, red300, SvgIconErrorOutline,
-  IconButton, FontIcon, Snackbar, LinearProgress,
-  SelectableList, CsvCreator, fs, QueryActions,
+  React, Promise, Api, CucmSql,
+  editorConfig, $, 
+  TextField, IconButton, LinearProgress,
+  fs, QueryActions,
   CsvUploadPopup, SaveQueryPopup, EditorResizer,
-  Editor, Queries, VimToggle, ExportCsvButton,
+  Editor, VimToggle, ExportCsvButton,
   QueryResultTable, QuerySidePanel, Utils
 } from './index';
 

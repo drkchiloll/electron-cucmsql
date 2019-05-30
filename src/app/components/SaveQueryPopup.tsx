@@ -10,7 +10,6 @@ const styles: any = {
 };
 
 export function SaveQueryPopup(props: any) {
-
   return (
     <Dialog open={true}
       title='Save Query'
