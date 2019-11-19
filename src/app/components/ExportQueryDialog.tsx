@@ -2,7 +2,10 @@ import { React, Dialog, $ } from './index';
 
 export class ExportQuery extends React.Component<any, any> {
   componentDidMount() {
-    setTimeout(() => $('#export-queries')[0].click(), 200);
+    setTimeout(() => {
+      const equery: any = $('#export-queries')[0];
+      equery.click(), 200
+    });
     $('#export-queries').click((event) => {
       this.props.cancel();
     })

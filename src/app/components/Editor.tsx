@@ -9,12 +9,16 @@ export class Editor extends React.Component<any,any> {
     name: 'save',
     bindKey: { win: 'Ctrl-S', mac: 'Command-S' },
     exec: function() {
-      $('.save-query').get(0).click();
+      const saveQuery: any = $('.save-query');
+      saveQuery.get(0).click();
     }
   }, {
     name: 'new-query',
     bindKey: { win: 'Ctrl-N', mac: 'Command-N' },
-    exec: () => $('.new-query').get(0).click()
+    exec: () => {
+      const newQuery: any = $('.new-query');
+      return newQuery.get(0).click()
+    }
   }]
   aceLoad = (editor) => {
     const Vim = ace.acequire('ace/keyboard/vim').CodeMirror.Vim;
