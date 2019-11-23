@@ -4,7 +4,7 @@ import {
   BottomNavigation, BottomNavigationItem,
   FontIcon, Paper, Divider, TextField,
   Subheader, ListItem, SelectableList,
-  Snackbar, SelectField, Utils, AccountActions
+  Snackbar, SelectField, Utils, AccountActionButtons
 } from './index';
 
 export class Accounts extends React.Component<any,any> {
@@ -288,7 +288,7 @@ export class Accounts extends React.Component<any,any> {
                   }) : null
                 }
               </SelectableList>
-              <AccountActions
+              <AccountActionButtons
                 handleAccountAddClick={this.handleAccountAddClick}
                 deleteAccount={this.deleteAccount}
               />

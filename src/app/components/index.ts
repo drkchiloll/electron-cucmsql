@@ -52,7 +52,7 @@ export {
 // Component Exports
 export { App } from './App';
 export { Accounts } from './Accounts';
-export { AccountActions } from './AccountActions';
+export { AccountActionButtons } from './AccountActionButtons';
 export { QueryWindow } from './QueryWindow';
 export { QueryActions } from './QueryActions';
 export { CsvUploadPopup } from './CsvUploadPopup';
