@@ -8,24 +8,22 @@ import {
 } from './index';
 
 export class Accounts extends React.Component<any,any> {
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
+    const accounts = Utils.getAccounts();
+    let selectedAcct = accounts.findIndex(a => a.selected);
+    if(selectedAcct === -1) selectedAcct = 0;
+    const account = accounts[selectedAcct];
+    props.accountName(accounts[selectedAcct].name);
     this.state = {
       api: null,
-      accounts: Utils.getAccounts(),
+      accounts,
       openAccounts: false,
-      selectedAcct: 0,
-      account: null,
+      selectedAcct,
+      account, 
       openSnack: false,
       acctMsg: ''
     };
-  }
-  componentWillMount() {
-    let accounts = Utils.getAccounts();
-    let selectedAcct = accounts.findIndex(acct => acct.selected);
-    if(selectedAcct === -1) selectedAcct = 0;
-    this.emitAccountName(accounts[selectedAcct].name);
-    this.setState({ accounts, selectedAcct, account: accounts[selectedAcct] });
   }
 
   emitAccountName = (name: string) => this.props.accountName(name);
@@ -61,27 +59,6 @@ export class Accounts extends React.Component<any,any> {
       Utils.setAccounts(account);
       this.setState({ account });
     })
-    //   account = accounts[selectedAcct],
-    //   { host, version, username, password } = account;
-    // let cucm = new CucmSql({ host, version, username, password }),
-    //   statement = cucm.testAxlQuery;
-    // cucm.query(statement, true).then((resp) => {
-    //   account['lastTested'] = moment().toDate();
-    //   if(resp && resp instanceof Array) {
-    //     account['status'] = 'green';
-    //   } else if(resp.error) {
-    //     account['status'] = 'red';
-    //   }
-    //   Utils.setAccounts(accounts);
-    //   this.setState({ account });
-    // }, (err) => {
-    //   alert(err.error);
-    //   account['status'] = 'red';
-    //   Utils.setAccounts(accounts);
-    //   return;
-    // }).then(() => {
-    //   this.setState({ account });
-    // });
   }
 
   close = () => {
@@ -210,11 +187,81 @@ export class Accounts extends React.Component<any,any> {
         )
       }
     })
-  };
+  }
+
+  selectAccount = e => {
+    const { accounts, selectedAcct } = this.state;
+    let prevSelected = JSON.parse(JSON.stringify(selectedAcct));
+    const accountName = $(e.target).text();
+    let newSelectedAccount = accounts.findIndex(a => a.name === accountName);
+    if(newSelectedAccount === -1) newSelectedAccount = 0;
+    let account = accounts[newSelectedAccount],
+      previousAccount = accounts[prevSelected];
+    account['selected'] = true;
+    previousAccount['selected'] = false;
+    this.emitAccountName(account.name);
+    Utils.setAccounts(accounts);
+    this.setState({
+      selectedAcct: newSelectedAccount
+    });
+  }
+
+  handleAccountAddClick = () => {
+    console.log('add account');
+    let { accounts } = this.state;
+    // Reset Selected Account
+    accounts = accounts.map(a => {
+      if(a.selected) a.selected = false;
+      return a;
+    })
+    const account: any = {
+      name: 'New Account',
+      host: '',
+      version: '12.0',
+      username: '',
+      password: '',
+      selected: true,
+      status: 'red'
+    };
+    accounts.push(account);
+    this.setState({
+      accounts,
+      account,
+      selectedAcct: accounts.length - 1
+    });
+  }
+
+  deleteAccount = () => {
+    console.log('remove touched');
+    let { accounts, selectedAcct } = this.state;
+    if(accounts.length === 1) {
+      return this.setState({
+        openSnack: true,
+        acctMsg: 'This is the only account..Please edit this account'
+      })
+    }
+    const originalAccountName = JSON.parse(JSON.stringify(accounts))[selectedAcct].name;
+    accounts.splice(selectedAcct, 1);
+    let accountName: string;
+    if(selectedAcct !== 0) {
+      accounts[selectedAcct - 1].selected = true;
+      accountName = accounts[selectedAcct - 1].name;
+    } else {
+      accounts[0].selected = true;
+      accountName = accounts[0].name;
+    }
+    this.emitAccountName(accountName);
+    Utils.setAccounts(accounts);
+    this.setState({
+      accounts,
+      openSnack: true,
+      acctMsg: `${originalAccountName} was removed successfully`,
+      selectedAcct: accounts.length - 1
+    });
+  }
 
   render() {
     let { accounts, selectedAcct } = this.state;
-    const style = { marginLeft: 20 };
     return (
       <div>
         <Dialog
@@ -224,22 +271,10 @@ export class Accounts extends React.Component<any,any> {
           onRequestClose={this.props.acctClose}>
           <div>
             <Drawer open={true} width={225}>
-              <SelectableList value={this.state.selectedAcct}
-                onChange={(e:any) => {
-                  let accounts = this.state.accounts,
-                      prevSelected =
-                        JSON.parse(JSON.stringify(this.state.selectedAcct)),
-                      acctName = $(e.target).text();
-                  let selectedAcct = accounts.findIndex(acct=>acct.name===acctName);
-                  if(selectedAcct === -1) selectedAcct = 0;
-                  let account = accounts[selectedAcct],
-                      prevAcct = accounts[prevSelected];
-                  account.selected = true;
-                  prevAcct.selected = false;
-                  this.emitAccountName(account.name);
-                  Utils.setAccounts(accounts);
-                  this.setState({ selectedAcct });
-                }} >
+              <SelectableList
+                value={selectedAcct}
+                onChange={this.selectAccount}
+              >
                 <Subheader>Account List</Subheader>
                 {
                   accounts ? accounts.map((acct, i) => {
@@ -253,72 +288,23 @@ export class Accounts extends React.Component<any,any> {
                   }) : null
                 }
               </SelectableList>
-              <div>
-                <Paper zDepth={1}>
+              {/* <div> */}
+                {/* <Paper zDepth={5}> */}
                   <BottomNavigation
                     style={{ position:'fixed', bottom: 0 }}>
                     <BottomNavigationItem
                       label="Account"
                       icon={<FontIcon className='fa fa-user-plus'/>}
-                      onClick={()=>{
-                        console.log('add account');
-                        let accounts = this.state.accounts;
-                        accounts = accounts.map(a => {
-                          if(a.selected) a.selected = false;
-                          return a;
-                        });
-                        const account: any = {
-                          name: 'New Account',
-                          host: '',
-                          version: '12.0',
-                          username: '',
-                          password: '',
-                          selected: true,
-                          status: 'red'
-                        };
-                        accounts.push(account);
-                        this.setState({
-                          accounts,
-                          selectedAcct: accounts.length - 1,
-                          account
-                        });
-                      }}
+                      onClick={this.handleAccountAddClick}
                     />
                     <BottomNavigationItem
                       label="Remove"
                       icon={<FontIcon color='red' className='fa fa-trash'/>}
-                      onClick={()=>{
-                        console.log('remove touched');
-                        let accounts = this.state.accounts,
-                            acctIdx = this.state.selectedAcct;
-                        if(accounts.length === 1) {
-                          return this.setState({
-                            openSnack: true,
-                            acctMsg: `This is the only account setup..Please Edit this Account`
-                          });
-                        }
-                        accounts.splice(acctIdx, 1);
-                        let accountName: string;
-                        if(acctIdx !== 0) {
-                          accounts[acctIdx - 1].selected = true;
-                          accountName = accounts[acctIdx-1].name;
-                        } else {
-                          accounts[0].selected = true;
-                          accountName = accounts[0].name;
-                        }
-                        this.emitAccountName(accountName);
-                        Utils.setAccounts(accounts);
-                        this.setState({
-                          selectedAcct: 0,
-                          accounts,
-                          acctMsg: `${name} removed successfully`,
-                          openSnack: true
-                        });
-                      }}
+                      onClick={this.deleteAccount}
                     />
                   </BottomNavigation>
-                </Paper>
-              </div>
+                {/* </Paper> */}
+              {/* </div> */}
             </Drawer>
           </div>
           <div style={{marginLeft:'235px'}}>
