@@ -4,7 +4,7 @@ import {
   BottomNavigation, BottomNavigationItem,
   FontIcon, Paper, Divider, TextField,
   Subheader, ListItem, SelectableList,
-  Snackbar, SelectField, Utils
+  Snackbar, SelectField, Utils, AccountActions
 } from './index';
 
 export class Accounts extends React.Component<any,any> {
@@ -288,23 +288,10 @@ export class Accounts extends React.Component<any,any> {
                   }) : null
                 }
               </SelectableList>
-              {/* <div> */}
-                {/* <Paper zDepth={5}> */}
-                  <BottomNavigation
-                    style={{ position:'fixed', bottom: 0 }}>
-                    <BottomNavigationItem
-                      label="Account"
-                      icon={<FontIcon className='fa fa-user-plus'/>}
-                      onClick={this.handleAccountAddClick}
-                    />
-                    <BottomNavigationItem
-                      label="Remove"
-                      icon={<FontIcon color='red' className='fa fa-trash'/>}
-                      onClick={this.deleteAccount}
-                    />
-                  </BottomNavigation>
-                {/* </Paper> */}
-              {/* </div> */}
+              <AccountActions
+                handleAccountAddClick={this.handleAccountAddClick}
+                deleteAccount={this.deleteAccount}
+              />
             </Drawer>
           </div>
           <div style={{marginLeft:'235px'}}>
