@@ -1,10 +1,10 @@
 import {
   React, $, cucmHelper,
   Drawer, MenuItem, Dialog, FlatButton,
-  BottomNavigation, BottomNavigationItem,
   FontIcon, Paper, Divider, TextField,
   Subheader, ListItem, SelectableList,
-  Snackbar, SelectField, Utils, AccountActionButtons
+  Snackbar, SelectField, Utils,
+  AccountActionButtons, AccountList
 } from './index';
 
 export class Accounts extends React.Component<any,any> {
@@ -171,7 +171,7 @@ export class Accounts extends React.Component<any,any> {
           <TextField
             key={i}
             type={(() => {
-              if(account.name === 'password')
+              if(prop.name === 'password')
                 return 'password';
               else return 'text'
             })()}
@@ -271,23 +271,11 @@ export class Accounts extends React.Component<any,any> {
           onRequestClose={this.props.acctClose}>
           <div>
             <Drawer open={true} width={225}>
-              <SelectableList
-                value={selectedAcct}
-                onChange={this.selectAccount}
-              >
-                <Subheader>Account List</Subheader>
-                {
-                  accounts ? accounts.map((acct, i) => {
-                    return (
-                      <ListItem
-                        key={`acct_${i}`}
-                        value={i}
-                        primaryText={acct.name}
-                        rightIcon={<FontIcon color={acct.status} className='fa fa-dot-circle-o' />}/>
-                    );
-                  }) : null
-                }
-              </SelectableList>
+              <AccountList
+                accounts={accounts}
+                selectedAcct={selectedAcct}
+                selectAccount={this.selectAccount}
+              />
               <AccountActionButtons
                 handleAccountAddClick={this.handleAccountAddClick}
                 deleteAccount={this.deleteAccount}
