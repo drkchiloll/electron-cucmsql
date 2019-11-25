@@ -169,9 +169,7 @@ export class Accounts extends React.Component<any,any> {
         return (
           <TextField
             key={i}
-            type={(() => prop.name === 'password' ?
-              'password': 'text'
-            )()}
+            type={prop.name === 'password' ? 'password': 'text'}
             hintText={prop.text}
             style={{ marginLeft: 20 }}
             name={prop.name}
