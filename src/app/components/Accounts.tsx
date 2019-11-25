@@ -21,7 +21,11 @@ export class Accounts extends React.Component<any,any> {
       selectedAcct,
       account, 
       openSnack: false,
-      acctMsg: ''
+      acctMsg: '',
+      cucmVersions: [
+        '8.0', '8.5', '9.0', '9.5', '9.6', '10.0', '10.5',
+        '11.0', '11.5', '11.6', '12.0', '12.5', '13.0'
+      ]
     };
   }
 
@@ -111,7 +115,7 @@ export class Accounts extends React.Component<any,any> {
   }
 
   accountForm = account => {
-    let { accounts } = this.state;
+    let { accounts, cucmVersions } = this.state;
     const formProps = [{
       name: 'name',
       text: 'Connection Name',
@@ -149,16 +153,13 @@ export class Accounts extends React.Component<any,any> {
                 this.setState({ accounts });
               }} >
                 {
-                  ['8.0','8.5','9.0','9.1','10.0','10.5','11.0','11.5','12.0']
-                    .map((ver,indx) => {
-                      return (
-                        <MenuItem
-                          value={ver}
-                          key={`version_${indx}`}
-                          primaryText={ver}
-                        />
-                      );
-                    })
+                  cucmVersions.map((ver: string, idx: Number) => (
+                    <MenuItem
+                      value={ver}
+                      key={`version_${idx}`}
+                      primaryText={ver}
+                    />
+                  ))
                 }
             </SelectField>
           </div>
