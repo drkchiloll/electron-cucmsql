@@ -103,9 +103,12 @@ export class QueryActions extends React.Component<any, any> {
         {
           filename && queries ?
             <ExportQuery {...this.state} cancel={this.cancelExport} /> :
-            queryUpload ?
-              <CsvUploadPopup close={this.closeQueryUpload} upload={this.queryUpload} /> :
-              null
+          queryUpload ?
+            <CsvUploadPopup
+              close={this.closeQueryUpload}
+              upload={this.queryUpload}
+            />:
+            null
         }
       </div>
     )
