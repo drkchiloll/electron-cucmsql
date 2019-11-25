@@ -3,7 +3,6 @@ import {
   BottomNavigation, BottomNavigationItem, $, Api, Promise
 } from './index';
 import { Utils } from '../lib/utils';
-import * as fs from 'fs';
 import { ExportQuery } from './ExportQueryDialog';
 import { CsvUploadPopup } from './CsvUploadPopup';
 
@@ -118,11 +117,11 @@ export class QueryActions extends React.Component<any, any> {
 
   queryUpload = () => {
     this.closeQueryUpload();
-    let file = $('#csv-upload').prop('files')[0],
-      text = fs.readFileSync(file.path).toString();
-    const queries = JSON.parse(text);
-    return Promise.each(queries, query => {
-      return this.props.import(query);
-    });
+    let file = $('#csv-upload').prop('files')[0];
+    return Utils.uploadQueries(file).then((queries: any) =>
+      Promise.each(queries, query =>
+        this.props.import(query)
+      )
+    )
   }
 }

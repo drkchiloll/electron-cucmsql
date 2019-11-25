@@ -121,6 +121,12 @@ export class Utils {
       });
     });
   }
+
+  static uploadQueries(file: any) {
+    return new Promise(resolve => fs.readFile(
+      file.path, (e, data) => resolve(JSON.parse(data.toString()))
+    ))
+  }
 }
 
 export interface Account {
