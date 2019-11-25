@@ -8,7 +8,7 @@ import { ExportQuery } from './ExportQueryDialog';
 import { CsvUploadPopup } from './CsvUploadPopup';
 
 const styles: any = {
-  nav: { backgroundColor: '#d7dddd', height: 75 },
+  nav: { backgroundColor: '#d7dddd', height: 75, marginTop: -75 },
   sqlIco: { margin: '10px 0 0 15px' },
 };
 

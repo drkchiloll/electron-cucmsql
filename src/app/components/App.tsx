@@ -126,7 +126,6 @@ export class App extends React.Component<any, any> {
             }
           </Drawer>
         </div>
-        <QueryWindow view={tabValue} accountName={accountName} />
         <div style={{ width: 280 }}>
           <Tabs className='tabs-container'
             inkBarStyle={{ background: 'rgb(140,20,17)' }}
@@ -159,7 +158,9 @@ export class App extends React.Component<any, any> {
                 </span>
               }
               label='SQL View'
-              value='mainView'>
+              value='mainView'
+            >
+              <QueryWindow view={tabValue} accountName={accountName} />
             </Tab>
           </Tabs>
         </div>
