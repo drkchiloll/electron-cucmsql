@@ -3,7 +3,8 @@ import {
   SelectableList,
   Subheader,
   ListItem,
-  FontIcon
+  FontIcon,
+  Paper
 } from './index';
 
 export const AccountList = props => {
@@ -11,6 +12,7 @@ export const AccountList = props => {
     <SelectableList
       value={props.selectedAcct}
       onChange={props.selectAccount}
+      style={{ overflow: 'auto', maxHeight: 400 }}
     >
       <Subheader>Account List</Subheader>
       {
